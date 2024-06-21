@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MoviesResponseDTO: Decodable {
+public struct MoviesResponseDTO: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case page
         case totalPages = "total_pages"
@@ -20,7 +20,7 @@ public struct MoviesResponseDTO: Decodable {
 }
 
 extension MoviesResponseDTO {
-    public struct MovieDTO: Decodable {
+    public struct MovieDTO: Codable, Equatable {
         private enum CodingKeys: String, CodingKey {
             case id
             case title

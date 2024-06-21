@@ -42,3 +42,18 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
         return provider.request(target)
     }
 }
+
+public extension Publisher {
+    func sinkToResult(_ result: @escaping (Result<Output, Failure>) -> Void) -> AnyCancellable {
+        sink(receiveCompletion: { completion in
+            switch completion {
+            case let .failure(error):
+                result(.failure(error))
+            default:
+                break
+            }
+        }, receiveValue: { value in
+            result(.success(value))
+        })
+    }
+}
