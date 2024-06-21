@@ -1,0 +1,15 @@
+{
+  "originHash" : "051e30cf8e79101703110130319802eb76032a36011e22a0d5f2f313a1cb7461",
+  "pins" : [
+    {
+      "identity" : "swiftnetworkwrap",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/phuongddx/SwiftNetworkWrap.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "954c4bfb4f9454a42b0296b65ad35b894c665476"
+      }
+    }
+  ],
+  "version" : 3
+}
