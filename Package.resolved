@@ -1,5 +1,5 @@
 {
-  "originHash" : "051e30cf8e79101703110130319802eb76032a36011e22a0d5f2f313a1cb7461",
+  "originHash" : "5cd8387b64caf2be3cc0908438bc83161c50c4ce1a051d60e64a74f0243bb62f",
   "pins" : [
     {
       "identity" : "swiftnetworkwrap",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/phuongddx/SwiftNetworkWrap.git",
       "state" : {
         "branch" : "master",
-        "revision" : "954c4bfb4f9454a42b0296b65ad35b894c665476"
+        "revision" : "3f727153d5795fea47477a7be42367bcd03136a9"
       }
     }
   ],

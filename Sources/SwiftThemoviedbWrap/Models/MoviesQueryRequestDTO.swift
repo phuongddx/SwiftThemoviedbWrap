@@ -7,19 +7,34 @@
 
 import Foundation
 
-protocol MoviesRequestable: Encodable {
+public protocol MoviesRequestable: Encodable {
     var page: Int { get set }
 }
 
-struct MoviesQueryRequestDTO: MoviesRequestable {
-    let query: String
-    var page: Int
+public struct MoviesQueryRequestDTO: MoviesRequestable {
+    public let query: String
+    public var page: Int
 }
 
-struct DefaultMoviesRequestDTO: MoviesRequestable {
-    var page: Int
+public struct DefaultMoviesRequestDTO: MoviesRequestable {
+    public var page: Int
 
-    init(page: Int = 1) {
+    public init(page: Int = 1) {
         self.page = page
+    }
+}
+
+public struct MoviesRecommendationREquestDTO: MoviesRequestable {
+    public var page: Int
+    public var movieId: Int
+}
+
+extension Encodable {
+    func toDictionary() -> [String: Any]? {
+        guard let data = try? JSONEncoder().encode(self),
+              let jsonData = try? JSONSerialization.jsonObject(with: data) else {
+            return nil
+        }
+        return jsonData as? [String: Any]
     }
 }

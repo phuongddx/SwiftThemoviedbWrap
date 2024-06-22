@@ -26,10 +26,12 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getTodayTrendingList_shouldReturnAnList() throws {
-        try mock(MoviesTarget.todayTrending, result: .success(MoviesResponseDTO.mocked))
+        let target = MoviesTarget.todayTrending(request: DefaultMoviesRequestDTO(page: 2))
+        try mock(target, result: .success(MoviesResponseDTO.mocked))
         let expectation = expectation(description: "an movies list should come")
 
-        sut.getTodayTrendingList()
+        sut.getTrendingList(type: .today,
+                            requestDTO: DefaultMoviesRequestDTO(page: 2))
             .sinkToResult { result in
                 switch result {
                 case .success(let moviesDTO):
@@ -43,6 +45,28 @@ final class MoviesDataProviderTests: XCTestCase {
             .store(in: &subscriptions)
 
         wait(for: [expectation], timeout: 3)
+    }
+
+    func test_getTodayTrendingList_shouldFailure() throws {
+        let requestDTO = DefaultMoviesRequestDTO(page: 2)
+        let mockFailure = Mock(url: URL(string: "https://testing.com")!,
+                               result: .failure(ApiError.unexpectedResponse))
+        RequestMocking.add(mock: mockFailure)
+        let expectation = expectation(description: "an failure error come")
+
+        sut.getTrendingList(type: .today,
+                            requestDTO: requestDTO)
+            .sinkToResult { result in
+                switch result {
+                case .failure:
+                    expectation.fulfill()
+                default:
+                    XCTFail("should not reach here")
+                }
+            }
+            .store(in: &subscriptions)
+
+        wait(for: [expectation], timeout: 2)
     }
 
     private func mock<T>(_ target: ApiTarget, result: Result<T, Swift.Error>,

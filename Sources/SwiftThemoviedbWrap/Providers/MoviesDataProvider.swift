@@ -9,25 +9,34 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-public protocol NetworkWrapProvider {
-    var sessionManager: NetworkSessionManager { get }
-}
-extension NetworkWrapProvider {
-    func request<Value: Decodable>(_ target: ApiTarget) -> AnyPublisher<Value, Error> {
-        sessionManager.call(target)
-    }
-}
-
-public class DefaultNetworkWrapProvider: NetworkWrapProvider {
-    public var sessionManager: NetworkSessionManager
-
-    init(sessionManager: NetworkSessionManager = DefaultNetworkSessionManager(baseURL: "")) {
-        self.sessionManager = sessionManager
-    }
-}
-
 public protocol MoviesDataProvider {
-    func getTodayTrendingList() -> AnyPublisher<MoviesResponseDTO, Error>
+    func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
+    func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
+}
+
+public enum TrendingType {
+    case today
+    case week
+}
+
+public enum MovieListType {
+    case nowPlaying
+    case upcoming
+    case topRated
+    case recommendations
+
+    func target(request: MoviesRequestable) -> ApiTarget {
+        switch self {
+        case .nowPlaying:
+            return MoviesTarget.nowPlaying(request: request)
+        case .upcoming:
+            return MoviesTarget.upComing(request: request)
+        case .topRated:
+            return MoviesTarget.topRated(request: request)
+        case .recommendations:
+            return MoviesTarget.recommendations(request: request as! MoviesRecommendationREquestDTO)
+        }
+    }
 }
 
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
@@ -37,9 +46,21 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
         self.provider = provider
     }
 
-    public func getTodayTrendingList() -> AnyPublisher<MoviesResponseDTO, Error> {
-        let target = MoviesTarget.todayTrending
+    public func getTrendingList(type: TrendingType,
+                                requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error> {
+        var target: ApiTarget
+        switch type {
+        case .today:
+            target = MoviesTarget.todayTrending(request: requestDTO)
+        case .week:
+            target = MoviesTarget.weekTrending(request: requestDTO)
+        }
         return provider.request(target)
+    }
+    
+    public func getMovieList(type: MovieListType,
+                             requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error> {
+        provider.request(type.target(request: requestDto))
     }
 }
 
