@@ -3,27 +3,24 @@
 name: Swift
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ main ]
 
 jobs:
-  build:
-    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest]
-        swift: ["5.10.0"]
-    runs-on: ${{ matrix.os }}
+  test:
+    runs-on: macos-latest
+
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
+
     - name: Set up Swift
+      uses: fwal/setup-swift@v1
+      with:
+        swift-version: '5.10.0'  # You can specify the Swift version here
+
+    - name: Build and test
       run: |
-        sudo apt-get install -y swiftenv
-        swiftenv install ${{ matrix.swift }}
-        swiftenv global ${{ matrix.swift }}
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
-
-
+        swift build
+        swift test
