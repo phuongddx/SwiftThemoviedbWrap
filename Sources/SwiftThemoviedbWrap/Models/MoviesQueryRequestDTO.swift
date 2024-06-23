@@ -24,17 +24,38 @@ public struct DefaultMoviesRequestDTO: MoviesRequestable {
     }
 }
 
-public struct MoviesRecommendationREquestDTO: MoviesRequestable {
+public struct MoviesRecommendationRequestDTO: MoviesRequestable {
     public var page: Int
     public var movieId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case page
+    }
+}
+
+public struct MovieDetailRequestDTO: Encodable {
+    public var movieId: Int
+    public var additionalResponse: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case additionalResponse = "append_to_response"
+    }
 }
 
 extension Encodable {
-    func toDictionary() -> [String: Any]? {
+    func toUrlQueryParameters() -> [String: Any]? {
         guard let data = try? JSONEncoder().encode(self),
-              let jsonData = try? JSONSerialization.jsonObject(with: data) else {
+              let dictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return nil
         }
-        return jsonData as? [String: Any]
+        return dictionary.compactMapValues { value -> String? in
+            if let stringArray = value as? Array<String> {
+                return stringArray.joined(separator: ",").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            }
+            if let stringValue = value as? String {
+                return stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            }
+            return "\(value)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        }
     }
 }

@@ -12,6 +12,7 @@ import SwiftNetworkWrap
 public protocol MoviesDataProvider {
     func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
     func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
+    func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, Error>
 }
 
 public enum TrendingType {
@@ -34,7 +35,7 @@ public enum MovieListType {
         case .topRated:
             return MoviesTarget.topRated(request: request)
         case .recommendations:
-            return MoviesTarget.recommendations(request: request as! MoviesRecommendationREquestDTO)
+            return MoviesTarget.recommendations(request: request as! MoviesRecommendationRequestDTO)
         }
     }
 }
@@ -61,6 +62,10 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
     public func getMovieList(type: MovieListType,
                              requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error> {
         provider.request(type.target(request: requestDto))
+    }
+
+    public func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, any Error> {
+        provider.request(MoviesTarget.detail(request: requestDto))
     }
 }
 
