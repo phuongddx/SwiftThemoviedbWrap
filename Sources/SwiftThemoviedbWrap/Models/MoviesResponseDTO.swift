@@ -7,34 +7,34 @@
 
 import Foundation
 
-public struct MoviesResponseDTO: Codable, Equatable {
+public struct PagedResponseDTO<ModelDTO: Codable & Equatable>: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case page
         case totalPages = "total_pages"
-        case movies = "results"
+        case results = "results"
     }
 
     public let page: Int
     public let totalPages: Int
-    public let movies: [MovieDTO]
+    public let results: [ModelDTO]
 }
 
-extension MoviesResponseDTO {
-    public struct MovieDTO: Codable, Equatable {
-        private enum CodingKeys: String, CodingKey {
-            case id
-            case title
-            case posterPath = "poster_path"
-            case overview
-            case releaseDate = "release_date"
-            case voteAverage = "vote_average"
-        }
-
-        public let id: Int
-        public let title: String?
-        public let posterPath: String?
-        public let overview: String?
-        public let releaseDate: String?
-        public let voteAverage: Double?
+public struct MovieDTO: Codable, Equatable {
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case posterPath = "poster_path"
+        case overview
+        case releaseDate = "release_date"
+        case voteAverage = "vote_average"
     }
+
+    public let id: Int
+    public let title: String?
+    public let posterPath: String?
+    public let overview: String?
+    public let releaseDate: String?
+    public let voteAverage: Double?
 }
+
+public typealias MoviesResponseDTO = PagedResponseDTO<MovieDTO>

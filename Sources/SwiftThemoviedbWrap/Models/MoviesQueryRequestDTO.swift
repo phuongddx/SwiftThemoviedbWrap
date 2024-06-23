@@ -33,8 +33,22 @@ public struct MoviesRecommendationRequestDTO: MoviesRequestable {
     }
 }
 
-public struct MovieDetailRequestDTO: Encodable {
-    public var movieId: Int
+public protocol MovieIdentifierRequestable: Encodable {
+    typealias Identifier = Int
+    var movieId: Identifier { get }
+}
+
+public struct MovieReviewsRequestDTO: MovieIdentifierRequestable {
+    public var movieId: Identifier
+    public var page: Int
+
+    enum CodingKeys: String, CodingKey {
+        case page
+    }
+}
+
+public struct MovieDetailRequestDTO: MovieIdentifierRequestable {
+    public var movieId: Identifier
     public var additionalResponse: [String]?
 
     enum CodingKeys: String, CodingKey {

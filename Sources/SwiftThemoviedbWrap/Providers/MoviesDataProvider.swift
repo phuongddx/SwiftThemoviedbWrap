@@ -13,6 +13,7 @@ public protocol MoviesDataProvider {
     func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
     func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
     func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, Error>
+    func getMovieReviewList(requestDto: MovieReviewsRequestDTO) -> AnyPublisher<MovieReviewsResponseDTO, Error>
 }
 
 public enum TrendingType {
@@ -66,6 +67,10 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
 
     public func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, any Error> {
         provider.request(MoviesTarget.detail(request: requestDto))
+    }
+
+    public func getMovieReviewList(requestDto: MovieReviewsRequestDTO) -> AnyPublisher<MovieReviewsResponseDTO, Error> {
+        provider.request(MoviesTarget.reviews(request: requestDto))
     }
 }
 

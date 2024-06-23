@@ -51,4 +51,15 @@ final class MoviesTargetTests: XCTestCase {
         XCTAssertEqual(sut.path, "/trending/movie/week")
         XCTAssertEqual(expectedURL, actualURL)
     }
+
+    func test_getMovieReviews() throws {
+        let requestDto = MovieReviewsRequestDTO(movieId: 111, page: 2)
+        let sut = MoviesTarget.reviews(request: requestDto)
+
+        let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
+        let actualURL = urlRequest.url?.absoluteURL
+        let expectedURL = URL(string: "https://test.com/movie/111/reviews?page=2")
+        XCTAssertEqual(actualURL, expectedURL)
+        XCTAssertEqual(sut.path, "/movie/111/reviews")
+    }
 }

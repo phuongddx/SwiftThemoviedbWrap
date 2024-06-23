@@ -35,8 +35,8 @@ final class MoviesDataProviderTests: XCTestCase {
             .sinkToResult { result in
                 switch result {
                 case .success(let moviesDTO):
-                    XCTAssertTrue(!moviesDTO.movies.isEmpty)
-                    XCTAssertEqual(moviesDTO.movies.first!.title, "Inception")
+                    XCTAssertTrue(!moviesDTO.results.isEmpty)
+                    XCTAssertEqual(moviesDTO.results.first!.title, "Inception")
                     expectation.fulfill()
                 default:
                     XCTFail("should not reach here")
@@ -69,6 +69,29 @@ final class MoviesDataProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
 
+    func test_getMoviveReviews_shouldSuccess() throws {
+        let requestDto = MovieReviewsRequestDTO(movieId: 123, page: 2)
+        try self.mock(MoviesTarget.reviews(request: requestDto),
+                      result: .success(MovieReviewsResponseDTO.mock))
+
+        let expectation = expectation(description: "should return an review list")
+
+        sut.getMovieReviewList(requestDto: requestDto)
+            .sinkToResult {
+                switch $0 {
+                case .success(let reviewPaged):
+                    XCTAssertFalse(reviewPaged.results.isEmpty)
+                    XCTAssertEqual(reviewPaged.results.first?.author, "katch22")
+                    expectation.fulfill()
+                default:
+                    XCTFail("should not reach here")
+                }
+            }
+            .store(in: &subscriptions)
+
+        wait(for: [expectation], timeout: 2)
+    }
+
     private func mock<T>(_ target: ApiTarget, result: Result<T, Swift.Error>,
                          httpCode: HTTPCode = 200) throws where T: Encodable {
         let mock = try Mock(target: target,
@@ -83,8 +106,8 @@ extension MoviesResponseDTO {
     static var mocked: MoviesResponseDTO {
         MoviesResponseDTO(page: 1,
                           totalPages: 10,
-                          movies: [
-                            MoviesResponseDTO.MovieDTO(
+                          results: [
+                            MovieDTO(
                                 id: 123,
                                 title: "Inception",
                                 posterPath: "/poster/inception.jpg",
@@ -92,7 +115,7 @@ extension MoviesResponseDTO {
                                 releaseDate: "2010-07-16",
                                 voteAverage: 8.8
                             ),
-                            MoviesResponseDTO.MovieDTO(
+                            MovieDTO(
                                 id: 124,
                                 title: "The Matrix",
                                 posterPath: "/poster/thematrix.jpg",
@@ -102,9 +125,11 @@ extension MoviesResponseDTO {
                             )
                           ])
     }
+}
 
-    static var moviesDTOMocked: MoviesResponseDTO.MovieDTO {
-        MoviesResponseDTO.MovieDTO(
+extension MovieDTO {
+    static var mocked: MovieDTO {
+        MovieDTO(
             id: 123,
             title: "Inception",
             posterPath: "/poster/inception.jpg",

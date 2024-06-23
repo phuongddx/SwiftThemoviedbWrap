@@ -50,9 +50,12 @@ enum MoviesTarget: ApiTarget {
     case popular(request: MoviesRequestable)
     case recommendations(request: MoviesRecommendationRequestDTO)
     case detail(request: MovieDetailRequestDTO)
+    case reviews(request: MovieReviewsRequestDTO)
 
     var path: String {
         switch self {
+        case .reviews(let request):
+            return "/movie/\(request.movieId)/reviews"
         case .detail(let request ):
             return "/movie/\(request.movieId)"
         case .popular:
@@ -78,6 +81,8 @@ enum MoviesTarget: ApiTarget {
 
     func queryParameters() -> [String: Any]? {
         switch self {
+        case .reviews(let request):
+            return request.toUrlQueryParameters()
         case .detail(let requestDetail):
             return requestDetail.toUrlQueryParameters()
         case .todayTrending(let request),
