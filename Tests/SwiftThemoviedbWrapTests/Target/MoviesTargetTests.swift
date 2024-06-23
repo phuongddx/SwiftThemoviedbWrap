@@ -9,6 +9,10 @@ import XCTest
 @testable import SwiftThemoviedbWrap
 
 final class MoviesTargetTests: XCTestCase {
+    override func setUp() {
+        TMDBConfigurationManager.shared = MockTMDBConfigurationManager()
+    }
+
     func test_getMovieDetail() throws {
         let requestDto = MovieDetailRequestDTO(
             movieId: 1234,
@@ -33,6 +37,18 @@ final class MoviesTargetTests: XCTestCase {
         let expectedURL: String = "https://test.com/trending/movie/day?page=2"
 
         XCTAssertEqual(sut.path, "/trending/movie/day")
+        XCTAssertEqual(expectedURL, actualURL)
+    }
+
+    func test_getWeekTrendingList() throws {
+        let requestDto = DefaultMoviesRequestDTO(page: 2)
+        let sut = MoviesTarget.weekTrending(request: requestDto)
+
+        let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
+        let actualURL: String = urlRequest.url!.absoluteString
+        let expectedURL: String = "https://test.com/trending/movie/week?page=2"
+
+        XCTAssertEqual(sut.path, "/trending/movie/week")
         XCTAssertEqual(expectedURL, actualURL)
     }
 }

@@ -8,6 +8,39 @@
 import Foundation
 import SwiftNetworkWrap
 
+protocol TMDBConfigurationManagerProtocol {
+    var accessToken: String { get set }
+    var apiKey: String { get set }
+    var language: String { get set }
+
+    func validateCredentials() throws
+}
+
+public class TMDBConfigurationManager: TMDBConfigurationManagerProtocol {
+    static var shared: TMDBConfigurationManagerProtocol = TMDBConfigurationManager()
+
+    private init() {}
+
+    public var accessToken: String = ""
+    public var apiKey: String = ""
+    public var language: String = NSLocale.preferredLanguages.first ?? "en"
+
+    public func validateCredentials() throws {
+        if accessToken.isEmpty || apiKey.isEmpty {
+            throw TmdbApiError.invalidCredentials
+        }
+    }
+}
+
+extension ApiTarget {
+    var headers: [String : String]? {
+        [
+            "Content-type": "application/json",
+            "Authorization": "Bearer \(TMDBConfigurationManager.shared.accessToken)"
+        ]
+    }
+}
+
 enum MoviesTarget: ApiTarget {
     case todayTrending(request: MoviesRequestable)
     case weekTrending(request: MoviesRequestable)
@@ -43,10 +76,6 @@ enum MoviesTarget: ApiTarget {
         return "GET"
     }
 
-    var headers: [String : String]? {
-        return ["Content-type": "application/json"]
-    }
-
     func queryParameters() -> [String: Any]? {
         switch self {
         case .detail(let requestDetail):
@@ -67,4 +96,28 @@ enum MoviesTarget: ApiTarget {
     func body() throws -> Data? {
         return nil
     }
+
+    func urlRequest(baseURL: String) throws -> URLRequest {
+        try TMDBConfigurationManager.shared.validateCredentials()
+        
+        guard var urlComponents = URLComponents(string: baseURL) else {
+            throw ApiError.invalidUrl
+        }
+        urlComponents.path = path
+        if let queryItems = queryParameters() {
+            urlComponents.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: "\($0.value)")}
+        }
+        guard let url = urlComponents.url else {
+            throw ApiError.invalidUrl
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.allHTTPHeaderFields = headers
+        request.httpBody = try body()
+        return request
+    }
+}
+
+enum TmdbApiError: Error {
+    case invalidCredentials
 }

@@ -28,3 +28,23 @@ final class MockNetworkWrapProvider: NetworkWrapProvider {
         self.sessionManager = sessionManager
     }
 }
+
+class MockTMDBConfigurationManager: TMDBConfigurationManagerProtocol {
+    var accessToken: String
+    var apiKey: String
+    var language: String
+
+    init(accessToken: String = "token",
+         apiKey: String = "key",
+         language: String = "en") {
+        self.accessToken = accessToken
+        self.apiKey = apiKey
+        self.language = language
+    }
+
+    func validateCredentials() throws {
+        if accessToken.isEmpty && apiKey.isEmpty {
+            throw TmdbApiError.invalidCredentials
+        }
+    }
+}
