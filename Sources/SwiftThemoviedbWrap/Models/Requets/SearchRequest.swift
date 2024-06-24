@@ -11,12 +11,12 @@ public protocol MoviesRequestable: Encodable {
     var page: Int { get set }
 }
 
-public struct MoviesQueryRequestDTO: MoviesRequestable {
+public struct SearchRequest: MoviesRequestable {
     public let query: String
     public var page: Int
 }
 
-public struct DefaultMoviesRequestDTO: MoviesRequestable {
+public struct DefaultMoviesRequest: MoviesRequestable {
     public var page: Int
 
     public init(page: Int = 1) {
@@ -24,7 +24,7 @@ public struct DefaultMoviesRequestDTO: MoviesRequestable {
     }
 }
 
-public struct MoviesRecommendationRequestDTO: MoviesRequestable {
+public struct MoviesRecommendationRequest: MoviesRequestable {
     public var page: Int
     public var movieId: Int
 
@@ -38,7 +38,7 @@ public protocol MovieIdentifierRequestable: Encodable {
     var movieId: Identifier { get }
 }
 
-public struct MovieReviewsRequestDTO: MovieIdentifierRequestable {
+public struct MovieReviewsRequest: MovieIdentifierRequestable {
     public var movieId: Identifier
     public var page: Int
 
@@ -47,7 +47,7 @@ public struct MovieReviewsRequestDTO: MovieIdentifierRequestable {
     }
 }
 
-public struct MovieDetailRequestDTO: MovieIdentifierRequestable {
+public struct MovieDetailRequest: MovieIdentifierRequestable {
     public var movieId: Identifier
     public var additionalResponse: [String]?
 

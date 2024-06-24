@@ -14,10 +14,10 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getMovieDetail() throws {
-        let requestDto = MovieDetailRequestDTO(
+        let request = MovieDetailRequest(
             movieId: 1234,
             additionalResponse: ["videos", "credits"])
-        let sut = MoviesTarget.detail(request: requestDto)
+        let sut = MoviesTarget.detail(request: request)
     
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL: String = urlRequest.url!.absoluteString
@@ -29,8 +29,8 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getTodayTrendingList() throws {
-        let requestDto = DefaultMoviesRequestDTO(page: 2)
-        let sut = MoviesTarget.todayTrending(request: requestDto)
+        let request = DefaultMoviesRequest(page: 2)
+        let sut = MoviesTarget.todayTrending(request: request)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL: String = urlRequest.url!.absoluteString
@@ -41,7 +41,7 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getWeekTrendingList() throws {
-        let requestDto = DefaultMoviesRequestDTO(page: 2)
+        let requestDto = DefaultMoviesRequest(page: 2)
         let sut = MoviesTarget.weekTrending(request: requestDto)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
@@ -53,7 +53,7 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getMovieReviews() throws {
-        let requestDto = MovieReviewsRequestDTO(movieId: 111, page: 2)
+        let requestDto = MovieReviewsRequest(movieId: 111, page: 2)
         let sut = MoviesTarget.reviews(request: requestDto)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
