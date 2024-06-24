@@ -29,7 +29,7 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getTodayTrendingList() throws {
-        let requestDto = DefaultMoviesRequestDTO(page: 2)
+        let requestDto = DefaultMoviesRequest(page: 2)
         let sut = MoviesTarget.todayTrending(request: requestDto)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
@@ -41,7 +41,7 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getWeekTrendingList() throws {
-        let requestDto = DefaultMoviesRequestDTO(page: 2)
+        let requestDto = DefaultMoviesRequest(page: 2)
         let sut = MoviesTarget.weekTrending(request: requestDto)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")

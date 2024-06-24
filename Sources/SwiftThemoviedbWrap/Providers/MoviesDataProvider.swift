@@ -10,8 +10,8 @@ import Combine
 import SwiftNetworkWrap
 
 public protocol MoviesDataProvider {
-    func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
-    func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error>
+    func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
+    func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
     func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, Error>
     func getMovieReviewList(requestDto: MovieReviewsRequestDTO) -> AnyPublisher<MovieReviewsResponseDTO, Error>
 }
@@ -36,7 +36,7 @@ public enum MovieListType {
         case .topRated:
             return MoviesTarget.topRated(request: request)
         case .recommendations:
-            return MoviesTarget.recommendations(request: request as! MoviesRecommendationRequestDTO)
+            return MoviesTarget.recommendations(request: request as! MoviesRecommendationRequest)
         }
     }
 }
@@ -49,7 +49,7 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
     }
 
     public func getTrendingList(type: TrendingType,
-                                requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error> {
+                                requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
         var target: ApiTarget
         switch type {
         case .today:
@@ -61,7 +61,7 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
     }
     
     public func getMovieList(type: MovieListType,
-                             requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponseDTO, Error> {
+                             requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
         provider.request(type.target(request: requestDto))
     }
 

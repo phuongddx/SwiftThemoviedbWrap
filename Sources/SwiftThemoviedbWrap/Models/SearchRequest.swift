@@ -11,12 +11,12 @@ public protocol MoviesRequestable: Encodable {
     var page: Int { get set }
 }
 
-public struct MoviesQueryRequestDTO: MoviesRequestable {
+public struct SearchRequest: MoviesRequestable {
     public let query: String
     public var page: Int
 }
 
-public struct DefaultMoviesRequestDTO: MoviesRequestable {
+public struct DefaultMoviesRequest: MoviesRequestable {
     public var page: Int
 
     public init(page: Int = 1) {
@@ -24,7 +24,7 @@ public struct DefaultMoviesRequestDTO: MoviesRequestable {
     }
 }
 
-public struct MoviesRecommendationRequestDTO: MoviesRequestable {
+public struct MoviesRecommendationRequest: MoviesRequestable {
     public var page: Int
     public var movieId: Int
 

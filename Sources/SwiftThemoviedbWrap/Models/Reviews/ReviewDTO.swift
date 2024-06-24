@@ -7,7 +7,7 @@
 
 import Foundation
 
-public typealias MovieReviewsResponseDTO = PagedResponseDTO<ReviewDTO>
+public typealias MovieReviewsResponseDTO = PagedResponse<ReviewDTO>
 
 public struct ReviewDTO: Codable, Equatable {
     public var author: String?

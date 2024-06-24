@@ -36,7 +36,7 @@ public struct MovieDetailResponseDTO: Codable, Equatable {
     public let voteCount: Int
     public let videos: VideosDTO
     public let credits: CreditsDTO
-    public let recommendations: MoviesResponseDTO
+    public let recommendations: MoviesResponse
     public let reviews: ReviewsResponseDTO
     
     private enum CodingKeys: String, CodingKey {

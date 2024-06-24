@@ -49,8 +49,8 @@ let reviewsJSON: String =
     """
 
 extension MovieReviewsResponseDTO {
-    static var mock: PagedResponseDTO<ReviewDTO> {
+    static var mock: PagedResponse<ReviewDTO> {
         let data = reviewsJSON.data(using: .utf16)!
-        return try! JSONDecoder().decode(PagedResponseDTO<ReviewDTO>.self, from: data)
+        return try! JSONDecoder().decode(PagedResponse<ReviewDTO>.self, from: data)
     }
 }

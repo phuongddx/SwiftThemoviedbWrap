@@ -26,17 +26,17 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getTodayTrendingList_shouldReturnAnList() throws {
-        let target = MoviesTarget.todayTrending(request: DefaultMoviesRequestDTO(page: 2))
-        try mock(target, result: .success(MoviesResponseDTO.mocked))
+        let target = MoviesTarget.todayTrending(request: DefaultMoviesRequest(page: 2))
+        try mock(target, result: .success(MoviesResponse.mocked))
         let expectation = expectation(description: "an movies list should come")
 
         sut.getTrendingList(type: .today,
-                            requestDTO: DefaultMoviesRequestDTO(page: 2))
+                            requestDTO: DefaultMoviesRequest(page: 2))
             .sinkToResult { result in
                 switch result {
                 case .success(let moviesDTO):
                     XCTAssertTrue(!moviesDTO.results.isEmpty)
-                    XCTAssertEqual(moviesDTO.results.first!.title, "Inception")
+                    XCTAssertEqual(moviesDTO.results.first!.title, "Mock Movie 1")
                     expectation.fulfill()
                 default:
                     XCTFail("should not reach here")
@@ -48,7 +48,7 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getTodayTrendingList_shouldFailure() throws {
-        let requestDTO = DefaultMoviesRequestDTO(page: 2)
+        let requestDTO = DefaultMoviesRequest(page: 2)
         let mockFailure = Mock(url: URL(string: "https://testing.com")!,
                                result: .failure(ApiError.unexpectedResponse))
         RequestMocking.add(mock: mockFailure)
@@ -102,40 +102,49 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 }
 
-extension MoviesResponseDTO {
-    static var mocked: MoviesResponseDTO {
-        MoviesResponseDTO(page: 1,
-                          totalPages: 10,
-                          results: [
-                            MovieDTO(
-                                id: 123,
-                                title: "Inception",
-                                posterPath: "/poster/inception.jpg",
-                                overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-                                releaseDate: "2010-07-16",
-                                voteAverage: 8.8
-                            ),
-                            MovieDTO(
-                                id: 124,
-                                title: "The Matrix",
-                                posterPath: "/poster/thematrix.jpg",
-                                overview: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
-                                releaseDate: "1999-03-31",
-                                voteAverage: 8.7
-                            )
-                          ])
+extension MoviesResponse {
+    static var mocked: MoviesResponse {
+        MoviesResponse(page: 1,
+                       totalPages: 10,
+                       results: [Movie.mockMovie1, Movie.mockMovie2])
     }
 }
 
-extension MovieDTO {
-    static var mocked: MovieDTO {
-        MovieDTO(
-            id: 123,
-            title: "Inception",
-            posterPath: "/poster/inception.jpg",
-            overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-            releaseDate: "2010-07-16",
-            voteAverage: 8.8
-        )
-    }
+extension Movie {
+    static var mockMovie1 = Movie(
+        id: 1,
+        title: "Mock Movie 1",
+        originalTitle: "Mock Original Title 1",
+        overview: "This is a brief overview of Mock Movie 1.",
+        posterPath: "/mockPoster1.jpg",
+        backdropPath: "/mockBackdrop1.jpg",
+        mediaType: "movie",
+        adult: false,
+        originalLanguage: "en",
+        genreIds: [28, 12],
+        popularity: 10.5,
+        releaseDate: "2022-01-01",
+        video: false,
+        voteAverage: 7.8,
+        voteCount: 1234
+    )
+
+    static var mockMovie2 = Movie(
+        id: 2,
+        title: "Mock Movie 2",
+        originalTitle: "Mock Original Title 2",
+        overview: "This is a brief overview of Mock Movie 2.",
+        posterPath: "/mockPoster2.jpg",
+        backdropPath: "/mockBackdrop2.jpg",
+        mediaType: "movie",
+        adult: false,
+        originalLanguage: "fr",
+        genreIds: [35, 18],
+        popularity: 20.3,
+        releaseDate: "2023-02-02",
+        video: false,
+        voteAverage: 8.2,
+        voteCount: 5678
+    )
+
 }
