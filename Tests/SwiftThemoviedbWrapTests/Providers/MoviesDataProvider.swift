@@ -31,7 +31,7 @@ final class MoviesDataProviderTests: XCTestCase {
         let expectation = expectation(description: "an movies list should come")
 
         sut.getTrendingList(type: .today,
-                            requestDTO: DefaultMoviesRequest(page: 2))
+                            request: DefaultMoviesRequest(page: 2))
             .sinkToResult { result in
                 switch result {
                 case .success(let moviesDTO):
@@ -55,7 +55,7 @@ final class MoviesDataProviderTests: XCTestCase {
         let expectation = expectation(description: "an failure error come")
 
         sut.getTrendingList(type: .today,
-                            requestDTO: requestDTO)
+                            request: requestDTO)
             .sinkToResult { result in
                 switch result {
                 case .failure:
@@ -70,13 +70,13 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getMoviveReviews_shouldSuccess() throws {
-        let requestDto = MovieReviewsRequestDTO(movieId: 123, page: 2)
+        let requestDto = MovieReviewsRequest(movieId: 123, page: 2)
         try self.mock(MoviesTarget.reviews(request: requestDto),
-                      result: .success(MovieReviewsResponseDTO.mock))
+                      result: .success(MovieReviewsResponse.mock))
 
         let expectation = expectation(description: "should return an review list")
 
-        sut.getMovieReviewList(requestDto: requestDto)
+        sut.getMovieReviewList(request: requestDto)
             .sinkToResult {
                 switch $0 {
                 case .success(let reviewPaged):

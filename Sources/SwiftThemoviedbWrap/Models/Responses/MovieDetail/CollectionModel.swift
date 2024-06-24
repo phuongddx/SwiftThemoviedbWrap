@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CollectionDTO: Codable, Equatable {
+public struct CollectionModel: Codable, Equatable {
     public let id: Int
     public let name: String
     public let posterPath: String?

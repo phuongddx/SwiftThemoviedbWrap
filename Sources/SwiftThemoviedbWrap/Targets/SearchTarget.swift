@@ -9,12 +9,15 @@ import Foundation
 
 // MARK: - Search
 enum SearchTarget: TmdbApiTarget {
-    case search(request: SearchRequest)
+    case movie(request: SearchRequest)
+    case person(request: SearchRequest)
 
     var path: String {
         switch self {
-        case .search:
+        case .movie:
             return "/search/movie"
+        case .person:
+            return "/search/person"
         }
     }
 
@@ -22,7 +25,8 @@ enum SearchTarget: TmdbApiTarget {
 
     func queryParameters() -> [String: Any]? {
         switch self {
-        case .search(let request):
+        case .movie(let request),
+                .person(let request):
             return request.toUrlQueryParameters()
         }
     }

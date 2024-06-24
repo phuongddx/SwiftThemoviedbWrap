@@ -38,7 +38,7 @@ public protocol MovieIdentifierRequestable: Encodable {
     var movieId: Identifier { get }
 }
 
-public struct MovieReviewsRequestDTO: MovieIdentifierRequestable {
+public struct MovieReviewsRequest: MovieIdentifierRequestable {
     public var movieId: Identifier
     public var page: Int
 
@@ -47,7 +47,7 @@ public struct MovieReviewsRequestDTO: MovieIdentifierRequestable {
     }
 }
 
-public struct MovieDetailRequestDTO: MovieIdentifierRequestable {
+public struct MovieDetailRequest: MovieIdentifierRequestable {
     public var movieId: Identifier
     public var additionalResponse: [String]?
 

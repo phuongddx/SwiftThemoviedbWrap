@@ -74,8 +74,8 @@ enum MoviesTarget: TmdbApiTarget {
     case topRated(request: MoviesRequestable)
     case popular(request: MoviesRequestable)
     case recommendations(request: MoviesRecommendationRequest)
-    case detail(request: MovieDetailRequestDTO)
-    case reviews(request: MovieReviewsRequestDTO)
+    case detail(request: MovieDetailRequest)
+    case reviews(request: MovieReviewsRequest)
 
     var path: String {
         switch self {

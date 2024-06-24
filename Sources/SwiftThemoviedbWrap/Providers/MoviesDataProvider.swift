@@ -10,10 +10,12 @@ import Combine
 import SwiftNetworkWrap
 
 public protocol MoviesDataProvider {
-    func getTrendingList(type: TrendingType, requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
-    func getMovieList(type: MovieListType, requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
-    func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, Error>
-    func getMovieReviewList(requestDto: MovieReviewsRequestDTO) -> AnyPublisher<MovieReviewsResponseDTO, Error>
+    func getTrendingList(type: TrendingType,
+                         request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
+    func getMovieList(type: MovieListType,
+                      request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
+    func getMovieDetails(request: MovieDetailRequest) -> AnyPublisher<MovieDetailResponse, Error>
+    func getMovieReviewList(request: MovieReviewsRequest) -> AnyPublisher<MovieReviewsResponse, Error>
 }
 
 public enum TrendingType {
@@ -49,28 +51,28 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
     }
 
     public func getTrendingList(type: TrendingType,
-                                requestDTO: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
+                                request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
         var target: ApiTarget
         switch type {
         case .today:
-            target = MoviesTarget.todayTrending(request: requestDTO)
+            target = MoviesTarget.todayTrending(request: request)
         case .week:
-            target = MoviesTarget.weekTrending(request: requestDTO)
+            target = MoviesTarget.weekTrending(request: request)
         }
         return provider.request(target)
     }
     
     public func getMovieList(type: MovieListType,
-                             requestDto: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
-        provider.request(type.target(request: requestDto))
+                             request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
+        provider.request(type.target(request: request))
     }
 
-    public func getMovieDetails(requestDto: MovieDetailRequestDTO) -> AnyPublisher<MovieDetailResponseDTO, any Error> {
-        provider.request(MoviesTarget.detail(request: requestDto))
+    public func getMovieDetails(request: MovieDetailRequest) -> AnyPublisher<MovieDetailResponse, any Error> {
+        provider.request(MoviesTarget.detail(request: request))
     }
 
-    public func getMovieReviewList(requestDto: MovieReviewsRequestDTO) -> AnyPublisher<MovieReviewsResponseDTO, Error> {
-        provider.request(MoviesTarget.reviews(request: requestDto))
+    public func getMovieReviewList(request: MovieReviewsRequest) -> AnyPublisher<MovieReviewsResponse, Error> {
+        provider.request(MoviesTarget.reviews(request: request))
     }
 }
 
