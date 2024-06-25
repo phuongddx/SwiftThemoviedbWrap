@@ -46,7 +46,7 @@ public enum MovieListType {
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
     public let provider: NetworkWrapProvider
 
-    init(provider: NetworkWrapProvider = DefaultNetworkWrapProvider()) {
+    init(provider: NetworkWrapProvider = TmdbNetworkWrapProvider()) {
         self.provider = provider
     }
 

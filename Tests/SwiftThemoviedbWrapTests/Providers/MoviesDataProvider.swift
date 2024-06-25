@@ -14,7 +14,7 @@ import Combine
 final class MoviesDataProviderTests: XCTestCase {
     typealias Mock = RequestMocking.MockedResponse
 
-    private var subscriptions = Set<AnyCancellable>()
+    private var subscriptions: Set<AnyCancellable> = Set<AnyCancellable>()
     var sut: MoviesDataProvider!
 
     override func setUp() {

@@ -9,15 +9,12 @@ import XCTest
 @testable import SwiftThemoviedbWrap
 
 final class MoviesTargetTests: XCTestCase {
-    override func setUp() {
-        TMDBConfigurationManager.shared = MockTMDBConfigurationManager()
-    }
 
     func test_getMovieDetail() throws {
         let request = MovieDetailRequest(
             movieId: 1234,
             additionalResponse: ["videos", "credits"])
-        let sut = MoviesTarget.detail(request: request)
+        let sut = MoviesTarget.detail(request: request, tmdbConfig: .mock)
     
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL: String = urlRequest.url!.absoluteString
@@ -30,7 +27,7 @@ final class MoviesTargetTests: XCTestCase {
 
     func test_getTodayTrendingList() throws {
         let request = DefaultMoviesRequest(page: 2)
-        let sut = MoviesTarget.todayTrending(request: request)
+        let sut = MoviesTarget.todayTrending(request: request, tmdbConfig: .mock)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL: String = urlRequest.url!.absoluteString
@@ -41,8 +38,8 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getWeekTrendingList() throws {
-        let requestDto = DefaultMoviesRequest(page: 2)
-        let sut = MoviesTarget.weekTrending(request: requestDto)
+        let request = DefaultMoviesRequest(page: 2)
+        let sut = MoviesTarget.weekTrending(request: request, tmdbConfig: .mock)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL: String = urlRequest.url!.absoluteString
@@ -53,8 +50,8 @@ final class MoviesTargetTests: XCTestCase {
     }
 
     func test_getMovieReviews() throws {
-        let requestDto = MovieReviewsRequest(movieId: 111, page: 2)
-        let sut = MoviesTarget.reviews(request: requestDto)
+        let request = MovieReviewsRequest(movieId: 111, page: 2)
+        let sut = MoviesTarget.reviews(request: request, tmdbConfig: .mock)
 
         let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
         let actualURL = urlRequest.url?.absoluteURL
