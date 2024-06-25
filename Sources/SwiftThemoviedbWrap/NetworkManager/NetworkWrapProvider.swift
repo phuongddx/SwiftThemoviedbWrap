@@ -19,10 +19,24 @@ extension NetworkWrapProvider {
     }
 }
 
-public class DefaultNetworkWrapProvider: NetworkWrapProvider {
+public class TmdbNetworkSessionManager: NetworkSessionManager {
+    public var session: URLSession
+    public var baseURL: String
+    public var bgQueue: DispatchQueue
+
+    init(session: URLSession = .configuredURLSession(),
+         baseURL: String = "https://api.themoviedb.org/3",
+         bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue")) {
+        self.session = session
+        self.baseURL = baseURL
+        self.bgQueue = bgQueue
+    }
+}
+
+public class TmdbNetworkWrapProvider: NetworkWrapProvider {
     public var sessionManager: NetworkSessionManager
 
-    init(sessionManager: NetworkSessionManager = DefaultNetworkSessionManager(baseURL: "")) {
+    init(sessionManager: NetworkSessionManager = TmdbNetworkSessionManager()) {
         self.sessionManager = sessionManager
     }
 }

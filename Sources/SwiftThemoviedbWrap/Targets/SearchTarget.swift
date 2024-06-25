@@ -8,26 +8,29 @@
 import Foundation
 
 // MARK: - Search
-enum SearchTarget: TmdbApiTarget {
-    case movie(request: SearchRequest)
-    case person(request: SearchRequest)
+struct SearchTarget: TmdbApiTarget {
+    func queryParameters() -> [String : Any]? {
+        _queryParameters
+    }
+    
+    var tmdbConfig: TmdbConfiguration
+    var path: String
+    var method: String = "GET"
+    var _queryParameters: [String: Any]?
 
-    var path: String {
-        switch self {
-        case .movie:
-            return "/search/movie"
-        case .person:
-            return "/search/person"
-        }
+    init(path: String,
+         tmdbConfig: TmdbConfiguration = .default,
+         queryParameters: [String: Any]? = nil) {
+        self.path = path
+        self._queryParameters = queryParameters
+        self.tmdbConfig = tmdbConfig
+    }
+    
+    static func movie(request: SearchRequest) -> Self {
+        SearchTarget(path: "/search/movie", queryParameters: request.toUrlQueryParameters())
     }
 
-    var method: String { "GET" }
-
-    func queryParameters() -> [String: Any]? {
-        switch self {
-        case .movie(let request),
-                .person(let request):
-            return request.toUrlQueryParameters()
-        }
+    static func person(request: SearchRequest) -> Self {
+        SearchTarget(path: "/search/person", queryParameters: request.toUrlQueryParameters())
     }
 }

@@ -29,22 +29,10 @@ final class MockNetworkWrapProvider: NetworkWrapProvider {
     }
 }
 
-class MockTMDBConfigurationManager: TMDBConfigurationManagerProtocol {
-    var accessToken: String
-    var apiKey: String
-    var language: String
+class MockTmdbConfiguration: TmdbConfiguration {}
 
-    init(accessToken: String = "token",
-         apiKey: String = "key",
-         language: String = "en") {
-        self.accessToken = accessToken
-        self.apiKey = apiKey
-        self.language = language
-    }
-
-    func validateCredentials() throws {
-        if accessToken.isEmpty && apiKey.isEmpty {
-            throw TmdbApiError.invalidCredentials
-        }
+extension TmdbConfiguration {
+    static var mock: MockTmdbConfiguration {
+        MockTmdbConfiguration(accessToken: "token", apiKey: "apikey")
     }
 }

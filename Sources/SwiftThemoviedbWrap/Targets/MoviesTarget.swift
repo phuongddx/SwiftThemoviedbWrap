@@ -8,38 +8,42 @@
 import Foundation
 import SwiftNetworkWrap
 
-protocol TMDBConfigurationManagerProtocol {
-    var accessToken: String { get set }
-    var apiKey: String { get set }
-    var language: String { get set }
+open class TmdbConfiguration {
+    open var accessToken: String
+    open var apiKey: String
+    open var language: String = NSLocale.preferredLanguages.first ?? "en-US"
 
-    func validateCredentials() throws
-}
+    init(accessToken: String = "",
+         apiKey: String = "",
+         language: String = "en-US") {
+        self.accessToken = accessToken
+        self.apiKey = apiKey
+        self.language = language
+    }
 
-public class TMDBConfigurationManager: TMDBConfigurationManagerProtocol {
-    static var shared: TMDBConfigurationManagerProtocol = TMDBConfigurationManager()
-
-    private init() {}
-
-    public var accessToken: String = ""
-    public var apiKey: String = ""
-    public var language: String = NSLocale.preferredLanguages.first ?? "en"
-
-    public func validateCredentials() throws {
-        if accessToken.isEmpty || apiKey.isEmpty {
-            throw TmdbApiError.invalidCredentials
-        }
+    static var `default`: TmdbConfiguration {
+        TmdbConfiguration(accessToken: "123123123")
     }
 }
 
-protocol TmdbApiTarget: ApiTarget {}
+protocol TmdbApiTarget: ApiTarget {
+    var tmdbConfig: TmdbConfiguration { get }
+
+    func validationTmdbConfiguraiton() throws
+}
 
 extension TmdbApiTarget {
     var headers: [String : String]? {
         [
             "Content-type": "application/json",
-            "Authorization": "Bearer \(TMDBConfigurationManager.shared.accessToken)"
+            "Authorization": "Bearer \(tmdbConfig.accessToken)"
         ]
+    }
+
+    func validationTmdbConfiguraiton() throws {
+        if tmdbConfig.accessToken.isEmpty && tmdbConfig.apiKey.isEmpty {
+            throw TmdbApiError.invalidCredentials
+        }
     }
 
     func body() throws -> Data? {
@@ -47,7 +51,6 @@ extension TmdbApiTarget {
     }
 
     func urlRequest(baseURL: String) throws -> URLRequest {
-        try TMDBConfigurationManager.shared.validateCredentials()
         guard var urlComponents = URLComponents(string: baseURL) else {
             throw ApiError.invalidUrl
         }
@@ -66,61 +69,85 @@ extension TmdbApiTarget {
     }
 }
 
-enum MoviesTarget: TmdbApiTarget {
-    case todayTrending(request: MoviesRequestable)
-    case weekTrending(request: MoviesRequestable)
-    case nowPlaying(request: MoviesRequestable)
-    case upComing(request: MoviesRequestable)
-    case topRated(request: MoviesRequestable)
-    case popular(request: MoviesRequestable)
-    case recommendations(request: MoviesRecommendationRequest)
-    case detail(request: MovieDetailRequest)
-    case reviews(request: MovieReviewsRequest)
-
-    var path: String {
-        switch self {
-        case .reviews(let request):
-            return "/movie/\(request.movieId)/reviews"
-        case .detail(let request ):
-            return "/movie/\(request.movieId)"
-        case .popular:
-            return "/movie/popular"
-        case .nowPlaying:
-            return "/movie/now_playing"
-        case .upComing:
-            return "/movie/upcoming"
-        case .todayTrending:
-            return "/trending/movie/day"
-        case .weekTrending:
-            return "/trending/movie/week"
-        case .topRated:
-            return "/movie/top_rated"
-        case .recommendations(let request):
-            return "/movie/\(request.movieId)/recommendations"
-        }
+struct MoviesTarget: TmdbApiTarget {
+    func queryParameters() -> [String : Any]? {
+        _queryParameters
     }
 
-    var method: String {
-        return "GET"
+    var tmdbConfig: TmdbConfiguration
+    var path: String
+    var method: String = "GET"
+    var _queryParameters: [String: Any]?
+
+    init(path: String,
+         tmdbConfig: TmdbConfiguration,
+         queryParameters: [String: Any]? = nil) {
+        self.path = path
+        self._queryParameters = queryParameters
+        self.tmdbConfig = tmdbConfig
+    }
+    
+    static func todayTrending(request: MoviesRequestable,
+                              tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/trending/movie/day",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
     }
 
-    func queryParameters() -> [String: Any]? {
-        switch self {
-        case .reviews(let request):
-            return request.toUrlQueryParameters()
-        case .detail(let requestDetail):
-            return requestDetail.toUrlQueryParameters()
-        case .todayTrending(let request),
-             .weekTrending(let request),
-             .topRated(let request),
-             .upComing(let request),
-             .nowPlaying(let request),
-             .popular(let request),
-             .recommendations(let request as MoviesRequestable):
-            return request.toUrlQueryParameters()
-        default:
-            return nil
-        }
+    static func weekTrending(request: MoviesRequestable,
+                             tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/trending/movie/week",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func nowPlaying(request: MoviesRequestable,
+                           tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/now_playing",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func upComing(request: MoviesRequestable,
+                         tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/upcoming",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func topRated(request: MoviesRequestable,
+                         tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/top_rated",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func popular(request: MoviesRequestable,
+                        tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/popular",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func recommendations(request: MoviesRecommendationRequest,
+                                tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/\(request.movieId)/recommendations",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func detail(request: MovieDetailRequest,
+                       tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/\(request.movieId)",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
+    }
+
+    static func reviews(request: MovieReviewsRequest,
+                        tmdbConfig: TmdbConfiguration = .default) -> MoviesTarget {
+        return MoviesTarget(path: "/movie/\(request.movieId)/reviews",
+                            tmdbConfig: tmdbConfig,
+                            queryParameters: request.toUrlQueryParameters())
     }
 }
 
