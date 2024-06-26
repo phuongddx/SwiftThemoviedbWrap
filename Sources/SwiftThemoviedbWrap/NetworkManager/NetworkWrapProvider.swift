@@ -14,29 +14,67 @@ public protocol NetworkWrapProvider {
 }
 
 extension NetworkWrapProvider {
-    func request<Value: Decodable>(_ target: ApiTarget) -> AnyPublisher<Value, Error> {
+    func request<Value: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Value, Error> {
         sessionManager.call(target)
     }
 }
 
-public class TmdbNetworkSessionManager: NetworkSessionManager {
+public class TmdbNetworkSessionManager {
     public var session: URLSession
-    public var baseURL: String
     public var bgQueue: DispatchQueue
 
     init(session: URLSession = .configuredURLSession(),
-         baseURL: String = "https://api.themoviedb.org/3",
          bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue")) {
         self.session = session
-        self.baseURL = baseURL
         self.bgQueue = bgQueue
+    }
+
+    func request<Response: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Response, Error> {
+        do {
+            let urlRequest = try target.buildURLRequest()
+            return session.dataTaskPublisher(for: urlRequest)
+                .requestJSON(httpCodes: .success)
+                .eraseToAnyPublisher()
+        } catch {
+            return Fail<Response, Error>(error: error).eraseToAnyPublisher()
+        }
     }
 }
 
-public class TmdbNetworkWrapProvider: NetworkWrapProvider {
-    public var sessionManager: NetworkSessionManager
+public class TmdbNetworkWrapProvider {
+    public var sessionManager: TmdbNetworkSessionManager
 
-    init(sessionManager: NetworkSessionManager = TmdbNetworkSessionManager()) {
+    init(sessionManager: TmdbNetworkSessionManager = TmdbNetworkSessionManager()) {
         self.sessionManager = sessionManager
+    }
+
+    func request<Response: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Response, Error> {
+        sessionManager.request(target)
+    }
+}
+
+extension Publisher where Output == URLSession.DataTaskPublisher.Output {
+    func requestData(httpCodes: HTTPCodes = .success) -> AnyPublisher<Data, Error> {
+        return tryMap {
+            assert(!Thread.isMainThread)
+            guard let code = ($0.response as? HTTPURLResponse)?.statusCode else {
+                throw ApiError.unexpectedResponse
+            }
+            guard httpCodes.contains(code) else {
+                throw ApiError.httpCode(code)
+            }
+            return $0.data
+        }
+        .extractUnderlyingError()
+        .eraseToAnyPublisher()
+    }
+}
+
+fileprivate extension Publisher where Output == URLSession.DataTaskPublisher.Output {
+    func requestJSON<Response: Decodable>(httpCodes: HTTPCodes) -> AnyPublisher<Response, Error> {
+        return requestData(httpCodes: httpCodes)
+            .decode(type: Response.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }

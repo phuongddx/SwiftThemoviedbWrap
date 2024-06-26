@@ -18,6 +18,7 @@ final class MoviesDataProviderTests: XCTestCase {
     var sut: MoviesDataProvider!
 
     override func setUp() {
+        createMockConfig()
         sut = DefaultMoviesDataProvider(provider: MockNetworkWrapProvider())
     }
 
@@ -38,8 +39,8 @@ final class MoviesDataProviderTests: XCTestCase {
                     XCTAssertTrue(!moviesDTO.results.isEmpty)
                     XCTAssertEqual(moviesDTO.results.first!.title, "Mock Movie 1")
                     expectation.fulfill()
-                default:
-                    XCTFail("should not reach here")
+                case .failure(let error):
+                    XCTFail("should not reach here, Error: \(error.localizedDescription)")
                 }
             }
             .store(in: &subscriptions)
@@ -92,7 +93,8 @@ final class MoviesDataProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
 
-    private func mock<T>(_ target: ApiTarget, result: Result<T, Swift.Error>,
+    private func mock<T>(_ target: MoviesTarget,
+                         result: Result<T, Swift.Error>,
                          httpCode: HTTPCode = 200) throws where T: Encodable {
         let mock = try Mock(target: target,
                             baseURL: "https://testing.com",

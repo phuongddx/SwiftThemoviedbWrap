@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftNetworkWrap
+@testable import SwiftThemoviedbWrap
 
 extension RequestMocking {
     struct MockedResponse {
@@ -24,14 +25,14 @@ extension RequestMocking.MockedResponse {
         case failedMockCreation
     }
     
-    init<T>(target: ApiTarget,
+    init<T>(target: TmdbApiTarget,
             baseURL: String,
             result: Result<T, Swift.Error>,
             httpCode: HTTPCode = 200,
             headers: [String: String] = ["Content-Type": "application/json"],
             loadingTime: TimeInterval = 0.1
     ) throws where T: Encodable {
-        guard let url = try target.urlRequest(baseURL: baseURL).url else {
+        guard let url = try target.buildURLRequest(baseURL: baseURL).url else {
             throw Error.failedMockCreation
         }
         self.url = url
@@ -47,10 +48,10 @@ extension RequestMocking.MockedResponse {
         customResponse = nil
     }
     
-    init(target: ApiTarget, 
+    init(target: TmdbApiTarget,
          baseURL: String,
          customResponse: URLResponse) throws {
-        guard let url = try target.urlRequest(baseURL: baseURL).url else {
+        guard let url = try target.buildURLRequest(baseURL: baseURL).url else {
             throw Error.failedMockCreation
         }
         self.url = url

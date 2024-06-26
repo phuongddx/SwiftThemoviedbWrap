@@ -29,7 +29,7 @@ public enum MovieListType {
     case topRated
     case recommendations
 
-    func target(request: MoviesRequestable) -> ApiTarget {
+    func target(request: MoviesRequestable) -> TmdbApiTarget {
         switch self {
         case .nowPlaying:
             return MoviesTarget.nowPlaying(request: request)
@@ -44,15 +44,15 @@ public enum MovieListType {
 }
 
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
-    public let provider: NetworkWrapProvider
+    public let provider: TmdbNetworkWrapProvider
 
-    init(provider: NetworkWrapProvider = TmdbNetworkWrapProvider()) {
+    init(provider: TmdbNetworkWrapProvider = TmdbNetworkWrapProvider()) {
         self.provider = provider
     }
 
     public func getTrendingList(type: TrendingType,
                                 request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
-        var target: ApiTarget
+        var target: TmdbApiTarget
         switch type {
         case .today:
             target = MoviesTarget.todayTrending(request: request)

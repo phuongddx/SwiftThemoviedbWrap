@@ -6,33 +6,27 @@
 //
 
 import Foundation
+import XCTest
 import SwiftNetworkWrap
 @testable import SwiftThemoviedbWrap
 
-final class MockNetworkSessionManager: NetworkSessionManager {
-    let session: URLSession
-    let baseURL: String
-    let bgQueue = DispatchQueue(label: "bg_parse_queue")
-
-    init(session: URLSession = .mockedResponseOnly,
-         baseURL: String = "https://testing.com") {
-        self.session = session
-        self.baseURL = baseURL
+final class MockTmdbNetworkSessionManager: TmdbNetworkSessionManager {
+    override init(session: URLSession = .mockedResponseOnly,
+                  bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue_testing")) {
+        super.init(session: session, bgQueue: bgQueue)
     }
 }
 
-final class MockNetworkWrapProvider: NetworkWrapProvider {
-    var sessionManager: any NetworkSessionManager
-
-    init(sessionManager: any NetworkSessionManager = MockNetworkSessionManager()) {
-        self.sessionManager = sessionManager
+final class MockNetworkWrapProvider: TmdbNetworkWrapProvider {
+    override init(sessionManager: TmdbNetworkSessionManager = MockTmdbNetworkSessionManager()) {
+        super.init(sessionManager: sessionManager)
     }
 }
 
-class MockTmdbConfiguration: TmdbConfiguration {}
-
-extension TmdbConfiguration {
-    static var mock: MockTmdbConfiguration {
-        MockTmdbConfiguration(accessToken: "token", apiKey: "apikey")
+extension XCTestCase {
+    func createMockConfig() {
+        NetworkWrapConfigurationTmdb.accessToken = "token"
+        NetworkWrapConfigurationTmdb.apiKey = "key"
+        NetworkWrapConfigurationTmdb.language = "en-US"
     }
 }
