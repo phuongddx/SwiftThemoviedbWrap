@@ -11,9 +11,8 @@ import SwiftNetworkWrap
 
 protocol TmdbNetworkWrapProvider {
     var session: URLSession { get }
-    var baseURL: URL { get }
-
-    func request<Response: Decodable>(_ target: TmdbApiTarget, httpCodes: HTTPCodes) -> AnyPublisher<Response, Error>
+    func request<Response: Decodable>(_ target: TmdbApiTarget,
+                                      httpCodes: HTTPCodes) -> AnyPublisher<Response, Error>
 }
 extension TmdbNetworkWrapProvider {
     func request<Response>(_ target: any TmdbApiTarget,
@@ -21,7 +20,7 @@ extension TmdbNetworkWrapProvider {
         do {
             let urlRequest = try target.buildURLRequest()
             return session.dataTaskPublisher(for: urlRequest)
-                .requestJSON(httpCodes: .success)
+                .requestJSON(httpCodes: httpCodes)
                 .eraseToAnyPublisher()
         } catch {
             return Fail<Response, Error>(error: error)
@@ -32,12 +31,9 @@ extension TmdbNetworkWrapProvider {
 
 class DefaultTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
     var session: URLSession
-    var baseURL: URL
 
-    init(session: URLSession = .configuredURLSession(),
-         baseURL: URL = URL(string: "https://api.themoviedb.org/3")!) {
+    init(session: URLSession = URLSession.configuredURLSession()) {
         self.session = session
-        self.baseURL = baseURL
     }
 }
 

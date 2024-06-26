@@ -5,19 +5,21 @@
 //  Created by PhuongDoan on 21/6/24.
 //
 
-import Foundation
+import Combine
 import XCTest
 import SwiftNetworkWrap
 @testable import SwiftThemoviedbWrap
 
 final class MockTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
     let session: URLSession
-    let baseURL: URL
 
-    init(session: URLSession = .mockedResponseOnly,
-         baseURL: URL = URL(string: "https://testing.com")!) {
+    init(session: URLSession) {
         self.session = session
-        self.baseURL = baseURL
+    }
+
+    func request<Response>(_ target: any TmdbApiTarget,
+                           httpCodes: HTTPCodes) -> AnyPublisher<Response, any Error> where Response : Decodable {
+        return Fail<Response, Error>(error: ApiError.imageDeserialization).eraseToAnyPublisher()
     }
 }
 

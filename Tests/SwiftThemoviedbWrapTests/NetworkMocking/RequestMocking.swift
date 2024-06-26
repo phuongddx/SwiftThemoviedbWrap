@@ -10,9 +10,9 @@ import Foundation
 extension URLSession {
     static var mockedResponseOnly: URLSession {
         let config = URLSessionConfiguration.default
-        config.protocolClasses = [RequestMocking.self, RequestBlocking.self]
-        config.timeoutIntervalForRequest = 1
-        config.timeoutIntervalForResource = 1
+        config.protocolClasses = [RequestMocking.self]
+        config.timeoutIntervalForRequest = 5
+        config.timeoutIntervalForResource = 5
         return URLSession(configuration: config)
     }
 }
@@ -82,27 +82,4 @@ extension RequestMocking {
             container.mocks.first { $0.url == request.url }
         }
     }
-}
-
-// MARK: - RequestBlocking
-
-private class RequestBlocking: URLProtocol {
-    enum Error: Swift.Error {
-        case requestBlocked
-    }
-
-    override class func canInit(with request: URLRequest) -> Bool {
-        return true
-    }
-
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-        return request
-    }
-
-    override func startLoading() {
-        DispatchQueue(label: "").async {
-            self.client?.urlProtocol(self, didFailWithError: Error.requestBlocked)
-        }
-    }
-    override func stopLoading() { }
 }

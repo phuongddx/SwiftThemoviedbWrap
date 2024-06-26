@@ -1,5 +1,5 @@
 //
-//  MoviesDataProvider.swift
+//  MoviesDataProviderTests.swift
 //
 //
 //  Created by PhuongDoan on 21/6/24.
@@ -20,11 +20,12 @@ final class MoviesDataProviderTests: XCTestCase {
 
     override func setUp() {
         createMockConfig()
-        mockNetworkWrap = MockTmdbNetworkWrapProvider()
+        mockNetworkWrap = MockTmdbNetworkWrapProvider(session: URLSession.mockedResponseOnly)
         sut = DefaultMoviesDataProvider(provider: mockNetworkWrap)
     }
 
     override func tearDown() {
+        super.tearDown()
         RequestMocking.removeAllMocks()
     }
 
@@ -42,15 +43,12 @@ final class MoviesDataProviderTests: XCTestCase {
                     XCTAssertEqual(moviesDTO.results.first!.title, "Mock Movie 1")
                     expectation.fulfill()
                 case .failure(let error):
-                    if let error = error as? TmdbApiError {
-                        print("xxxxx")
-                    }
                     XCTFail("should not reach here, Error: \(error.localizedDescription)")
                 }
             }
             .store(in: &subscriptions)
 
-        wait(for: [expectation], timeout: 3)
+        wait(for: [expectation], timeout: 5)
     }
 
     func test_getTodayTrendingList_shouldFailure() throws {
@@ -89,13 +87,13 @@ final class MoviesDataProviderTests: XCTestCase {
                     XCTAssertFalse(reviewPaged.results.isEmpty)
                     XCTAssertEqual(reviewPaged.results.first?.author, "katch22")
                     expectation.fulfill()
-                default:
-                    XCTFail("should not reach here")
+                case .failure(let error):
+                    XCTFail("should not reach here, Error: \(error.localizedDescription)")
                 }
             }
             .store(in: &subscriptions)
 
-        wait(for: [expectation], timeout: 4)
+        wait(for: [expectation], timeout: 5)
     }
 
     private func mock<T>(_ target: TmdbApiTarget,
