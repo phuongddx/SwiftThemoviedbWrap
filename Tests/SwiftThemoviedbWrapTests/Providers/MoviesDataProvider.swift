@@ -42,6 +42,9 @@ final class MoviesDataProviderTests: XCTestCase {
                     XCTAssertEqual(moviesDTO.results.first!.title, "Mock Movie 1")
                     expectation.fulfill()
                 case .failure(let error):
+                    if let error = error as? TmdbApiError {
+                        print("xxxxx")
+                    }
                     XCTFail("should not reach here, Error: \(error.localizedDescription)")
                 }
             }
@@ -96,10 +99,11 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     private func mock<T>(_ target: TmdbApiTarget,
+                         baseURL: String = "https://testing.com",
                          result: Result<T, Swift.Error>,
                          httpCode: HTTPCode = 200) throws where T: Encodable {
         let mock = try Mock(target: target,
-                            baseURL: "https://testing.com",
+                            baseURL: baseURL,
                             result: result,
                             httpCode: httpCode)
         RequestMocking.add(mock: mock)

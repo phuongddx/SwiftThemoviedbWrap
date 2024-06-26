@@ -11,14 +11,13 @@ import SwiftNetworkWrap
 @testable import SwiftThemoviedbWrap
 
 final class MockTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
-    var baseURL: String
-    var session: URLSession
-    var bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_testing")
+    let session: URLSession
+    let baseURL: URL
 
-    init(baseURL: String = "https://testing.com",
-         session: URLSession = .mockedResponseOnly) {
-        self.baseURL = baseURL
+    init(session: URLSession = .mockedResponseOnly,
+         baseURL: URL = URL(string: "https://testing.com")!) {
         self.session = session
+        self.baseURL = baseURL
     }
 }
 

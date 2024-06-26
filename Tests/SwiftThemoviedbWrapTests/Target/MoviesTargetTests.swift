@@ -20,9 +20,9 @@ final class MoviesTargetTests: XCTestCase {
             additionalResponse: ["videos", "credits"])
         let sut = MoviesTarget.detail(request: request)
         
-        let urlRequest = try sut.buildURLRequest(baseURL: "https://test.com")
+        let urlRequest = try sut.buildURLRequest()
         let actualURL: URL = urlRequest.url!.absoluteURL
-        let expectedURL = URL(string: "https://test.com/movie/1234?append_to_response=videos,credits&api_key=key&language=en-US")!
+        let expectedURL = URL(string: "https://api.themoviedb.org/movie/1234?append_to_response=videos,credits&api_key=key&language=en-US")!
         assertEqualURLs(actualURL, expectedURL)
     }
     
@@ -30,9 +30,9 @@ final class MoviesTargetTests: XCTestCase {
         let request = DefaultMoviesRequest(page: 2)
         let sut = MoviesTarget.todayTrending(request: request)
         
-        let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
+        let urlRequest = try sut.buildURLRequest()
         let actualURL: URL = urlRequest.url!.absoluteURL
-        let expectedURL: URL = URL(string: "https://test.com/trending/movie/day?page=2&api_key=key&language=en-US")!
+        let expectedURL: URL = URL(string: "https://api.themoviedb.org/trending/movie/day?page=2&api_key=key&language=en-US")!
         
         assertEqualURLs(actualURL, expectedURL)
     }
@@ -41,9 +41,9 @@ final class MoviesTargetTests: XCTestCase {
         let request = DefaultMoviesRequest(page: 2)
         let sut = MoviesTarget.weekTrending(request: request)
         
-        let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
+        let urlRequest = try sut.buildURLRequest()
         let actualURL: URL = urlRequest.url!.absoluteURL
-        let expectedURL: URL = URL(string: "https://test.com/trending/movie/week?page=2&api_key=key&language=en-US")!
+        let expectedURL: URL = URL(string: "https://api.themoviedb.org/trending/movie/week?page=2&api_key=key&language=en-US")!
 
         assertEqualURLs(actualURL, expectedURL)
     }
@@ -52,12 +52,12 @@ final class MoviesTargetTests: XCTestCase {
         let request = MovieReviewsRequest(movieId: 111, page: 2)
         let sut = MoviesTarget.reviews(request: request)
         
-        let urlRequest = try sut.urlRequest(baseURL: "https://test.com")
+        let urlRequest = try sut.buildURLRequest()
         guard let actualURL = urlRequest.url?.absoluteURL else {
             XCTFail("URL request is nil")
             return
         }
-        let expectedURL = URL(string: "https://test.com/movie/111/reviews?page=2&api_key=key&language=en-US")!
+        let expectedURL = URL(string: "https://api.themoviedb.org/movie/111/reviews?page=2&api_key=key&language=en-US")!
 
         assertEqualURLs(actualURL, expectedURL)
     }

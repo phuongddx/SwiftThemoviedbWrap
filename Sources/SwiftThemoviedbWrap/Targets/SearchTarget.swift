@@ -13,6 +13,9 @@ struct SearchTarget: TmdbApiTarget {
         _queryParameters
     }
 
+    var baseURL: URL {
+        URL(string: "https://api.themoviedb.org/3")!
+    }
     var path: String
     let method: String
     var _queryParameters: [String: Any]?

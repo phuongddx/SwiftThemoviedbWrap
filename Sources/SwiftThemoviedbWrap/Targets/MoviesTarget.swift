@@ -17,7 +17,9 @@ public struct NetworkWrapConfigurationTmdb {
 }
 
 protocol TmdbApiTarget: ApiTarget {
-    func buildURLRequest(baseURL: String) throws -> URLRequest
+    var baseURL: URL { get }
+
+    func buildURLRequest() throws -> URLRequest
 }
 
 extension TmdbApiTarget {
@@ -32,8 +34,8 @@ extension TmdbApiTarget {
         return nil
     }
 
-    func buildURLRequest(baseURL: String = "https://api.themoviedb.org/3") throws -> URLRequest {
-        guard var urlComponents = URLComponents(string: baseURL) else {
+    func buildURLRequest() throws -> URLRequest {
+        guard var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
             throw ApiError.invalidUrl
         }
         urlComponents.path = path
@@ -60,6 +62,9 @@ struct MoviesTarget: TmdbApiTarget {
         return _queryParameters?.merging(queryDefault, uniquingKeysWith: { _,new in new })
     }
 
+    var baseURL: URL {
+        URL(string: "https://api.themoviedb.org/3")!
+    }
     var path: String
     var method: String = "GET"
     var _queryParameters: [String: Any]?

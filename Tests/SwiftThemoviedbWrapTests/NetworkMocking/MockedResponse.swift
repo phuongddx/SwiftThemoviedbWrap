@@ -32,7 +32,7 @@ extension RequestMocking.MockedResponse {
             headers: [String: String] = ["Content-Type": "application/json"],
             loadingTime: TimeInterval = 0.1
     ) throws where T: Encodable {
-        guard let url = try target.buildURLRequest(baseURL: baseURL).url else {
+        guard let url = try target.buildURLRequest().url else {
             throw Error.failedMockCreation
         }
         self.url = url
@@ -51,7 +51,7 @@ extension RequestMocking.MockedResponse {
     init(target: TmdbApiTarget,
          baseURL: String,
          customResponse: URLResponse) throws {
-        guard let url = try target.buildURLRequest(baseURL: baseURL).url else {
+        guard let url = try target.buildURLRequest().url else {
             throw Error.failedMockCreation
         }
         self.url = url
