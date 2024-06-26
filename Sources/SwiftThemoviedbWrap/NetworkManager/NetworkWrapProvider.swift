@@ -9,47 +9,37 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-public protocol NetworkWrapProvider {
-    var sessionManager: NetworkSessionManager { get }
+protocol TmdbNetworkWrapProvider {
+    var session: URLSession { get }
+    var baseURL: String { get }
+    var bgQueue: DispatchQueue { get }
+
+    func request<Response: Decodable>(_ target: TmdbApiTarget, httpCodes: HTTPCodes) -> AnyPublisher<Response, Error>
 }
-
-extension NetworkWrapProvider {
-    func request<Value: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Value, Error> {
-        sessionManager.call(target)
-    }
-}
-
-public class TmdbNetworkSessionManager {
-    public var session: URLSession
-    public var bgQueue: DispatchQueue
-
-    init(session: URLSession = .configuredURLSession(),
-         bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue")) {
-        self.session = session
-        self.bgQueue = bgQueue
-    }
-
-    func request<Response: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Response, Error> {
+extension TmdbNetworkWrapProvider {
+    func request<Response>(_ target: any TmdbApiTarget,
+                           httpCodes: HTTPCodes = .success) -> AnyPublisher<Response, any Error> where Response: Decodable {
         do {
-            let urlRequest = try target.buildURLRequest()
+            let urlRequest = try target.buildURLRequest(baseURL: baseURL)
             return session.dataTaskPublisher(for: urlRequest)
                 .requestJSON(httpCodes: .success)
                 .eraseToAnyPublisher()
         } catch {
-            return Fail<Response, Error>(error: error).eraseToAnyPublisher()
+            return Fail<Response, Error>(error: error)
+                .eraseToAnyPublisher()
         }
     }
 }
 
-public class TmdbNetworkWrapProvider {
-    public var sessionManager: TmdbNetworkSessionManager
+class DefaultTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
+    var session: URLSession
+    var baseURL: String
+    var bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue")
 
-    init(sessionManager: TmdbNetworkSessionManager = TmdbNetworkSessionManager()) {
-        self.sessionManager = sessionManager
-    }
-
-    func request<Response: Decodable>(_ target: TmdbApiTarget) -> AnyPublisher<Response, Error> {
-        sessionManager.request(target)
+    init(session: URLSession = .configuredURLSession(),
+         baseURL: String = "https://api.themoviedb.org/3") {
+        self.session = session
+        self.baseURL = baseURL
     }
 }
 

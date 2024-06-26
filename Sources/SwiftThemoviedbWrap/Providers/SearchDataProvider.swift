@@ -16,7 +16,7 @@ public protocol SearchDataProvider {
 public final class DefaultSearchDataProvider: SearchDataProvider {
     let provider: TmdbNetworkWrapProvider
 
-    init(provider: TmdbNetworkWrapProvider = TmdbNetworkWrapProvider()) {
+    init(provider: TmdbNetworkWrapProvider = DefaultTmdbNetworkWrapProvider()) {
         self.provider = provider
     }
 

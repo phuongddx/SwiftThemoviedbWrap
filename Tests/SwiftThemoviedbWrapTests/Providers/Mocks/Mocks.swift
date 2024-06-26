@@ -10,16 +10,15 @@ import XCTest
 import SwiftNetworkWrap
 @testable import SwiftThemoviedbWrap
 
-final class MockTmdbNetworkSessionManager: TmdbNetworkSessionManager {
-    override init(session: URLSession = .mockedResponseOnly,
-                  bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue_testing")) {
-        super.init(session: session, bgQueue: bgQueue)
-    }
-}
+final class MockTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
+    var baseURL: String
+    var session: URLSession
+    var bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_testing")
 
-final class MockNetworkWrapProvider: TmdbNetworkWrapProvider {
-    override init(sessionManager: TmdbNetworkSessionManager = MockTmdbNetworkSessionManager()) {
-        super.init(sessionManager: sessionManager)
+    init(baseURL: String = "https://testing.com",
+         session: URLSession = .mockedResponseOnly) {
+        self.baseURL = baseURL
+        self.session = session
     }
 }
 

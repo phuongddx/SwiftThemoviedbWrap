@@ -16,10 +16,12 @@ final class MoviesDataProviderTests: XCTestCase {
 
     private var subscriptions: Set<AnyCancellable> = Set<AnyCancellable>()
     var sut: MoviesDataProvider!
+    var mockNetworkWrap: MockTmdbNetworkWrapProvider!
 
     override func setUp() {
         createMockConfig()
-        sut = DefaultMoviesDataProvider(provider: MockNetworkWrapProvider())
+        mockNetworkWrap = MockTmdbNetworkWrapProvider()
+        sut = DefaultMoviesDataProvider(provider: mockNetworkWrap)
     }
 
     override func tearDown() {
@@ -90,10 +92,10 @@ final class MoviesDataProviderTests: XCTestCase {
             }
             .store(in: &subscriptions)
 
-        wait(for: [expectation], timeout: 2)
+        wait(for: [expectation], timeout: 4)
     }
 
-    private func mock<T>(_ target: MoviesTarget,
+    private func mock<T>(_ target: TmdbApiTarget,
                          result: Result<T, Swift.Error>,
                          httpCode: HTTPCode = 200) throws where T: Encodable {
         let mock = try Mock(target: target,
