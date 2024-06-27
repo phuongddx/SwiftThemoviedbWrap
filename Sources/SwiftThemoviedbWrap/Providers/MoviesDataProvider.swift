@@ -46,7 +46,7 @@ public enum MovieListType {
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
     public var urlSession: URLSession
 
-    init(urlSession: URLSession) {
+    public init(urlSession: URLSession) {
         self.urlSession = urlSession
     }
 

@@ -16,7 +16,7 @@ public protocol SearchDataProvider: TmdbNetworkWrapProvider {
 public final class DefaultSearchDataProvider: SearchDataProvider {
     public var urlSession: URLSession
 
-    init(urlSession: URLSession) {
+    public init(urlSession: URLSession) {
         self.urlSession = urlSession
     }
 
