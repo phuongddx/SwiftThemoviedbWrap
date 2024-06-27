@@ -8,23 +8,27 @@
 import Foundation
 import Combine
 
-public protocol SearchDataProvider {
+public protocol SearchDataProvider: TmdbNetworkWrapProvider {
     func movies(request: SearchRequest) -> AnyPublisher<MoviesResponse, Error>
     func persons(_ request: SearchRequest) -> AnyPublisher<PersonPagedResponse, Error>
 }
 
 public final class DefaultSearchDataProvider: SearchDataProvider {
-    let provider: NetworkWrapProvider
+    public var urlSession: URLSession
 
-    init(provider: NetworkWrapProvider = TmdbNetworkWrapProvider()) {
-        self.provider = provider
+    init(urlSession: URLSession) {
+        self.urlSession = urlSession
     }
 
     public func movies(request: SearchRequest) -> AnyPublisher<MoviesResponse, Error> {
-        provider.request(SearchTarget.movie(request: request))
+        load(SearchTarget.movie(request: request))
     }
 
     public func persons(_ request: SearchRequest) -> AnyPublisher<PersonPagedResponse, Error> {
-        provider.request(SearchTarget.person(request: request))
+        load(SearchTarget.person(request: request))
     }
+}
+
+extension URLSession {
+    static let sharedInstance: URLSession = URLSession.configuredURLSession()
 }

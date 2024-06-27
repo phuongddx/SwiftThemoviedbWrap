@@ -21,15 +21,15 @@ public struct PagedResponse<Model: Codable & Equatable>: Codable, Equatable {
 
 public struct Movie: Codable, Equatable {
     public let id: Int
-    public let title: String
+    public let title: String?
     public let originalTitle: String?
-    public let overview: String
+    public let overview: String?
     public let posterPath: String?
     public let backdropPath: String?
     public let mediaType: String?
     public let adult: Bool
-    public let originalLanguage: String
-    public let genreIds: [Int]
+    public let originalLanguage: String?
+    public let genreIds: [Int]?
     public let popularity: Double?
     public let releaseDate: String?
     public let video: Bool?

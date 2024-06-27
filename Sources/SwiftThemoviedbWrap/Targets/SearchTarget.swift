@@ -12,18 +12,20 @@ struct SearchTarget: TmdbApiTarget {
     func queryParameters() -> [String : Any]? {
         _queryParameters
     }
-    
-    var tmdbConfig: TmdbConfiguration
+
+    var baseURL: URL {
+        URL(string: "https://api.themoviedb.org/3")!
+    }
     var path: String
-    var method: String = "GET"
+    let method: String
     var _queryParameters: [String: Any]?
 
     init(path: String,
-         tmdbConfig: TmdbConfiguration = .default,
+         method: String = "GET",
          queryParameters: [String: Any]? = nil) {
         self.path = path
+        self.method = method
         self._queryParameters = queryParameters
-        self.tmdbConfig = tmdbConfig
     }
     
     static func movie(request: SearchRequest) -> Self {

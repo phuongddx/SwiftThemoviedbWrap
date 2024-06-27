@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-public protocol MoviesDataProvider {
+public protocol MoviesDataProvider: TmdbNetworkWrapProvider {
     func getTrendingList(type: TrendingType,
                          request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
     func getMovieList(type: MovieListType,
@@ -29,7 +29,7 @@ public enum MovieListType {
     case topRated
     case recommendations
 
-    func target(request: MoviesRequestable) -> ApiTarget {
+    func target(request: MoviesRequestable) -> TmdbApiTarget {
         switch self {
         case .nowPlaying:
             return MoviesTarget.nowPlaying(request: request)
@@ -44,35 +44,35 @@ public enum MovieListType {
 }
 
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
-    public let provider: NetworkWrapProvider
+    public var urlSession: URLSession
 
-    init(provider: NetworkWrapProvider = TmdbNetworkWrapProvider()) {
-        self.provider = provider
+    init(urlSession: URLSession) {
+        self.urlSession = urlSession
     }
 
     public func getTrendingList(type: TrendingType,
                                 request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
-        var target: ApiTarget
+        var target: TmdbApiTarget
         switch type {
         case .today:
             target = MoviesTarget.todayTrending(request: request)
         case .week:
             target = MoviesTarget.weekTrending(request: request)
         }
-        return provider.request(target)
+        return load(target, httpCodes: .success)
     }
     
     public func getMovieList(type: MovieListType,
                              request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
-        provider.request(type.target(request: request))
+        load(type.target(request: request))
     }
 
     public func getMovieDetails(request: MovieDetailRequest) -> AnyPublisher<MovieDetailResponse, any Error> {
-        provider.request(MoviesTarget.detail(request: request))
+        load(MoviesTarget.detail(request: request))
     }
 
     public func getMovieReviewList(request: MovieReviewsRequest) -> AnyPublisher<MovieReviewsResponse, Error> {
-        provider.request(MoviesTarget.reviews(request: request))
+        load(MoviesTarget.reviews(request: request))
     }
 }
 

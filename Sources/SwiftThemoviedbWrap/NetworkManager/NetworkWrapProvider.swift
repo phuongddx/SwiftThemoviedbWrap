@@ -9,34 +9,48 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-public protocol NetworkWrapProvider {
-    var sessionManager: NetworkSessionManager { get }
+public protocol TmdbNetworkWrapProvider {
+    var urlSession: URLSession { get }
+    func load<Response: Decodable>(_ target: TmdbApiTarget,
+                                      httpCodes: HTTPCodes) -> AnyPublisher<Response, Error>
 }
-
-extension NetworkWrapProvider {
-    func request<Value: Decodable>(_ target: ApiTarget) -> AnyPublisher<Value, Error> {
-        sessionManager.call(target)
+extension TmdbNetworkWrapProvider {
+    public func load<Response>(_ target: any TmdbApiTarget,
+                               httpCodes: HTTPCodes = .success) -> AnyPublisher<Response, any Error> where Response: Decodable {
+        do {
+            let urlRequest = try target.buildURLRequest()
+            return urlSession.dataTaskPublisher(for: urlRequest)
+                .requestJSON(httpCodes: httpCodes)
+                .eraseToAnyPublisher()
+        } catch {
+            return Fail<Response, Error>(error: error)
+                .eraseToAnyPublisher()
+        }
     }
 }
 
-public class TmdbNetworkSessionManager: NetworkSessionManager {
-    public var session: URLSession
-    public var baseURL: String
-    public var bgQueue: DispatchQueue
-
-    init(session: URLSession = .configuredURLSession(),
-         baseURL: String = "https://api.themoviedb.org/3",
-         bgQueue: DispatchQueue = DispatchQueue(label: "themoviedb_queue")) {
-        self.session = session
-        self.baseURL = baseURL
-        self.bgQueue = bgQueue
+extension Publisher where Output == URLSession.DataTaskPublisher.Output {
+    func requestData(httpCodes: HTTPCodes = .success) -> AnyPublisher<Data, Error> {
+        return tryMap {
+            assert(!Thread.isMainThread)
+            guard let code = ($0.response as? HTTPURLResponse)?.statusCode else {
+                throw ApiError.unexpectedResponse
+            }
+            guard httpCodes.contains(code) else {
+                throw ApiError.httpCode(code)
+            }
+            return $0.data
+        }
+        .extractUnderlyingError()
+        .eraseToAnyPublisher()
     }
 }
 
-public class TmdbNetworkWrapProvider: NetworkWrapProvider {
-    public var sessionManager: NetworkSessionManager
-
-    init(sessionManager: NetworkSessionManager = TmdbNetworkSessionManager()) {
-        self.sessionManager = sessionManager
+fileprivate extension Publisher where Output == URLSession.DataTaskPublisher.Output {
+    func requestJSON<Response: Decodable>(httpCodes: HTTPCodes) -> AnyPublisher<Response, Error> {
+        return requestData(httpCodes: httpCodes)
+            .decode(type: Response.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }
