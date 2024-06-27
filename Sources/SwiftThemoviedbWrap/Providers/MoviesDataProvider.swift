@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-public protocol MoviesDataProvider {
+public protocol MoviesDataProvider: TmdbNetworkWrapProvider {
     func getTrendingList(type: TrendingType,
                          request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error>
     func getMovieList(type: MovieListType,
@@ -44,10 +44,10 @@ public enum MovieListType {
 }
 
 public final class DefaultMoviesDataProvider: MoviesDataProvider {
-    let provider: TmdbNetworkWrapProvider
+    public var urlSession: URLSession
 
-    init(provider: TmdbNetworkWrapProvider = DefaultTmdbNetworkWrapProvider()) {
-        self.provider = provider
+    init(urlSession: URLSession) {
+        self.urlSession = urlSession
     }
 
     public func getTrendingList(type: TrendingType,
@@ -59,20 +59,20 @@ public final class DefaultMoviesDataProvider: MoviesDataProvider {
         case .week:
             target = MoviesTarget.weekTrending(request: request)
         }
-        return provider.request(target)
+        return load(target, httpCodes: .success)
     }
     
     public func getMovieList(type: MovieListType,
                              request: MoviesRequestable) -> AnyPublisher<MoviesResponse, Error> {
-        provider.request(type.target(request: request))
+        load(type.target(request: request))
     }
 
     public func getMovieDetails(request: MovieDetailRequest) -> AnyPublisher<MovieDetailResponse, any Error> {
-        provider.request(MoviesTarget.detail(request: request))
+        load(MoviesTarget.detail(request: request))
     }
 
     public func getMovieReviewList(request: MovieReviewsRequest) -> AnyPublisher<MovieReviewsResponse, Error> {
-        provider.request(MoviesTarget.reviews(request: request))
+        load(MoviesTarget.reviews(request: request))
     }
 }
 

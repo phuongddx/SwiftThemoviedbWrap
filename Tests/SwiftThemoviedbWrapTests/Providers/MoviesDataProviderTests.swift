@@ -12,26 +12,22 @@ import Combine
 @testable import SwiftThemoviedbWrap
 
 final class MoviesDataProviderTests: XCTestCase {
-    typealias Mock = RequestMocking.MockedResponse
 
     private var subscriptions: Set<AnyCancellable> = Set<AnyCancellable>()
     var sut: MoviesDataProvider!
-    var mockNetworkWrap: MockTmdbNetworkWrapProvider!
 
     override func setUp() {
         createMockConfig()
-        mockNetworkWrap = MockTmdbNetworkWrapProvider(session: URLSession.mockedResponseOnly)
-        sut = DefaultMoviesDataProvider(provider: mockNetworkWrap)
+        sut = DefaultMoviesDataProvider(urlSession: .mock)
     }
 
     override func tearDown() {
+        //        Mocker.removeAll()
         super.tearDown()
-        RequestMocking.removeAllMocks()
     }
 
     func test_getTodayTrendingList_shouldReturnAnList() throws {
-        let target = MoviesTarget.todayTrending(request: DefaultMoviesRequest(page: 2))
-        try mock(target, result: .success(MoviesResponse.mocked))
+        MockingURLSession.resgister(MockedData.moviesListJSON.data)
         let expectation = expectation(description: "an movies list should come")
 
         sut.getTrendingList(type: .today,
@@ -40,7 +36,7 @@ final class MoviesDataProviderTests: XCTestCase {
                 switch result {
                 case .success(let moviesDTO):
                     XCTAssertTrue(!moviesDTO.results.isEmpty)
-                    XCTAssertEqual(moviesDTO.results.first!.title, "Mock Movie 1")
+                    XCTAssertEqual(moviesDTO.results.first!.title, "Scream VI")
                     expectation.fulfill()
                 case .failure(let error):
                     XCTFail("should not reach here, Error: \(error.localizedDescription)")
@@ -52,14 +48,11 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getTodayTrendingList_shouldFailure() throws {
-        let requestDTO = DefaultMoviesRequest(page: 2)
-        let mockFailure = Mock(url: URL(string: "https://testing.com")!,
-                               result: .failure(ApiError.unexpectedResponse))
-        RequestMocking.add(mock: mockFailure)
+        MockingURLSession.resgister400ErrorCode()
         let expectation = expectation(description: "an failure error come")
 
         sut.getTrendingList(type: .today,
-                            request: requestDTO)
+                            request: DefaultMoviesRequest(page: 2))
             .sinkToResult { result in
                 switch result {
                 case .failure:
@@ -74,18 +67,15 @@ final class MoviesDataProviderTests: XCTestCase {
     }
 
     func test_getMoviveReviews_shouldSuccess() throws {
-        let requestDto = MovieReviewsRequest(movieId: 123, page: 2)
-        try self.mock(MoviesTarget.reviews(request: requestDto),
-                      result: .success(MovieReviewsResponse.mock))
-
+        MockingURLSession.resgister(MockedData.reviewListJSON.data)
         let expectation = expectation(description: "should return an review list")
 
-        sut.getMovieReviewList(request: requestDto)
+        sut.getMovieReviewList(request: MovieReviewsRequest(movieId: 123, page: 2))
             .sinkToResult {
                 switch $0 {
                 case .success(let reviewPaged):
                     XCTAssertFalse(reviewPaged.results.isEmpty)
-                    XCTAssertEqual(reviewPaged.results.first?.author, "katch22")
+                    XCTAssertEqual(reviewPaged.results.first!.author, "elshaarawy")
                     expectation.fulfill()
                 case .failure(let error):
                     XCTFail("should not reach here, Error: \(error.localizedDescription)")
@@ -94,17 +84,6 @@ final class MoviesDataProviderTests: XCTestCase {
             .store(in: &subscriptions)
 
         wait(for: [expectation], timeout: 5)
-    }
-
-    private func mock<T>(_ target: TmdbApiTarget,
-                         baseURL: String = "https://testing.com",
-                         result: Result<T, Swift.Error>,
-                         httpCode: HTTPCode = 200) throws where T: Encodable {
-        let mock = try Mock(target: target,
-                            baseURL: baseURL,
-                            result: result,
-                            httpCode: httpCode)
-        RequestMocking.add(mock: mock)
     }
 }
 
@@ -153,4 +132,11 @@ extension Movie {
         voteCount: 5678
     )
 
+}
+
+
+extension URL {
+    var data: Data {
+        try! Data(contentsOf: self)
+    }
 }

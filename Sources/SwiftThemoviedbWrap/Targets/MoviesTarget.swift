@@ -16,7 +16,7 @@ public struct NetworkWrapConfigurationTmdb {
     public static var language: String = NSLocale.preferredLanguages.first ?? "en-US"
 }
 
-protocol TmdbApiTarget: ApiTarget {
+public protocol TmdbApiTarget: ApiTarget {
     var baseURL: URL { get }
 
     func buildURLRequest() throws -> URLRequest

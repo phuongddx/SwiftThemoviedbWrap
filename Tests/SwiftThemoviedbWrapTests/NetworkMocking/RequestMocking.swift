@@ -5,81 +5,61 @@
 //  Created by PhuongDoan on 21/6/24.
 //
 
-import Foundation
+import XCTest
 
-extension URLSession {
-    static var mockedResponseOnly: URLSession {
-        let config = URLSessionConfiguration.default
-        config.protocolClasses = [RequestMocking.self]
-        config.timeoutIntervalForRequest = 5
-        config.timeoutIntervalForResource = 5
-        return URLSession(configuration: config)
-    }
-}
+class MockingURLProtocol: URLProtocol {
+    static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
 
-final class RequestMocking: URLProtocol {
     override class func canInit(with request: URLRequest) -> Bool {
-        return mock(for: request) != nil
+        return true
     }
 
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
         return request
     }
 
-    override class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool {
-        return false
-    }
-
     override func startLoading() {
-        if let mock = RequestMocking.mock(for: request),
-           let url = request.url,
-           let response = mock.customResponse ?? HTTPURLResponse(url: url,
-                                                                 statusCode: mock.httpCode,
-                                                                 httpVersion: "HTTP/1.1",
-                                                                 headerFields: mock.headers) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + mock.loadingTime) { [weak self] in
-                guard let self else {
-                    return
-                }
-                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-                switch mock.result {
-                case let .success(data):
-                    self.client?.urlProtocol(self, didLoad: data)
-                    self.client?.urlProtocolDidFinishLoading(self)
-                case let .failure(error):
-                    let failure = NSError(domain: NSURLErrorDomain, code: 1,
-                                          userInfo: [NSUnderlyingErrorKey: error])
-                    self.client?.urlProtocol(self, didFailWithError: failure)
-                }
-            }
+        guard let handler = MockingURLProtocol.requestHandler else {
+            XCTFail("Received unexpected request with no handler set")
+            return
+        }
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
         }
     }
 
-    override func stopLoading() { }
+    override func stopLoading() {
+        
+    }
 }
 
-extension RequestMocking {
-    private final class MocksContainer: @unchecked Sendable {
-        var mocks: [MockedResponse] = []
-    }
-    static private let container = MocksContainer()
-    static private let lock = NSLock()
+struct MockingURLSession {
+    static let shared: URLSession = MockingURLSession().getSession()
 
-    static func add(mock: MockedResponse) {
-        lock.withLock {
-            container.mocks.append(mock)
+    private func getSession() -> URLSession {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockingURLProtocol.self]
+        return URLSession(configuration: configuration)
+    }
+
+    static func resgister(_ data: Data) {
+        MockingURLProtocol.requestHandler = { _ in
+            return (HTTPURLResponse(), data)
         }
     }
-    
-    static func removeAllMocks() {
-        lock.withLock {
-            container.mocks.removeAll()
-        }
-    }
-    
-    static private func mock(for request: URLRequest) -> MockedResponse? {
-        return lock.withLock {
-            container.mocks.first { $0.url == request.url }
+
+    static func resgister400ErrorCode() {
+        MockingURLProtocol.requestHandler = { _ in
+            let response = HTTPURLResponse(url: URL(string: "http://testing.com")!,
+                                           statusCode: 400,
+                                           httpVersion: nil,
+                                           headerFields: nil)!
+            return (response, Data())
         }
     }
 }

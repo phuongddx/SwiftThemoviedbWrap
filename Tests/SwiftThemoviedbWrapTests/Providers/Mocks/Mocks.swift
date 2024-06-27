@@ -10,17 +10,15 @@ import XCTest
 import SwiftNetworkWrap
 @testable import SwiftThemoviedbWrap
 
-final class MockTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
-    let session: URLSession
-
-    init(session: URLSession) {
-        self.session = session
+extension URLSession {
+    static var mock: URLSession {
+        MockingURLSession.shared
     }
+}
 
-    func request<Response>(_ target: any TmdbApiTarget,
-                           httpCodes: HTTPCodes) -> AnyPublisher<Response, any Error> where Response : Decodable {
-        return Fail<Response, Error>(error: ApiError.imageDeserialization).eraseToAnyPublisher()
-    }
+final class MockedData {
+    static let moviesListJSON: URL = Bundle.module.url(forResource: "movie_list", withExtension: "json")!
+    static let reviewListJSON: URL = Bundle.module.url(forResource: "review_list", withExtension: "json")!
 }
 
 extension XCTestCase {

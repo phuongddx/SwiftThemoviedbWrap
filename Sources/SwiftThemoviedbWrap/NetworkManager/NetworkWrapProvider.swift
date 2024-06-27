@@ -9,31 +9,23 @@ import Foundation
 import Combine
 import SwiftNetworkWrap
 
-protocol TmdbNetworkWrapProvider {
-    var session: URLSession { get }
-    func request<Response: Decodable>(_ target: TmdbApiTarget,
+public protocol TmdbNetworkWrapProvider {
+    var urlSession: URLSession { get }
+    func load<Response: Decodable>(_ target: TmdbApiTarget,
                                       httpCodes: HTTPCodes) -> AnyPublisher<Response, Error>
 }
 extension TmdbNetworkWrapProvider {
-    func request<Response>(_ target: any TmdbApiTarget,
-                           httpCodes: HTTPCodes = .success) -> AnyPublisher<Response, any Error> where Response: Decodable {
+    public func load<Response>(_ target: any TmdbApiTarget,
+                               httpCodes: HTTPCodes = .success) -> AnyPublisher<Response, any Error> where Response: Decodable {
         do {
             let urlRequest = try target.buildURLRequest()
-            return session.dataTaskPublisher(for: urlRequest)
+            return urlSession.dataTaskPublisher(for: urlRequest)
                 .requestJSON(httpCodes: httpCodes)
                 .eraseToAnyPublisher()
         } catch {
             return Fail<Response, Error>(error: error)
                 .eraseToAnyPublisher()
         }
-    }
-}
-
-class DefaultTmdbNetworkWrapProvider: TmdbNetworkWrapProvider {
-    var session: URLSession
-
-    init(session: URLSession = URLSession.configuredURLSession()) {
-        self.session = session
     }
 }
 
