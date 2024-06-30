@@ -9,30 +9,22 @@ import Foundation
 
 // MARK: - Search
 struct SearchTarget: TmdbApiTarget {
-    func queryParameters() -> [String : Any]? {
-        _queryParameters
-    }
+    public var path: String?
+    public var queryParams: [String: String]?
 
-    var baseURL: URL {
-        URL(string: "https://api.themoviedb.org/3")!
-    }
-    var path: String
-    let method: String
-    var _queryParameters: [String: Any]?
-
-    init(path: String,
-         method: String = "GET",
-         queryParameters: [String: Any]? = nil) {
+    private init(path: String? = nil,
+                  queryParams: [String: String]?) {
         self.path = path
-        self.method = method
-        self._queryParameters = queryParameters
+        self.queryParams = queryParams?.merging(queryDefaultParams, uniquingKeysWith: { _, new in new })
     }
-    
+
     static func movie(request: SearchRequest) -> Self {
-        SearchTarget(path: "/search/movie", queryParameters: request.toUrlQueryParameters())
+        SearchTarget(path: "/search/movie",
+                     queryParams: request.toQueryParams())
     }
 
     static func person(request: SearchRequest) -> Self {
-        SearchTarget(path: "/search/person", queryParameters: request.toUrlQueryParameters())
+        SearchTarget(path: "/search/person",
+                     queryParams: request.toQueryParams())
     }
 }

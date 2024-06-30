@@ -17,11 +17,7 @@ public struct SearchRequest: MoviesRequestable {
 }
 
 public struct DefaultMoviesRequest: MoviesRequestable {
-    public var page: Int
-
-    public init(page: Int = 1) {
-        self.page = page
-    }
+    public var page: Int = 1
 }
 
 public struct MoviesRecommendationRequest: MoviesRequestable {
@@ -57,19 +53,20 @@ public struct MovieDetailRequest: MovieIdentifierRequestable {
 }
 
 extension Encodable {
-    func toUrlQueryParameters() -> [String: Any]? {
+    func toQueryParams() -> [String: String]? {
         guard let data = try? JSONEncoder().encode(self),
               let dictionary = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return nil
         }
         return dictionary.compactMapValues { value -> String? in
-            if let stringArray = value as? Array<String> {
-                return stringArray.joined(separator: ",").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            switch value {
+            case let stringArray as [String]:
+                return stringArray.joined(separator: ",")
+            case let stringValue as String:
+                return stringValue
+            default:
+                return String(describing: value)
             }
-            if let stringValue = value as? String {
-                return stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-            }
-            return "\(value)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         }
     }
 }

@@ -8,119 +8,89 @@
 import Foundation
 import SwiftNetworkWrap
 
-public struct NetworkWrapConfigurationTmdb {
-    private init() {}
-
-    public static var apiKey: String = ""
-    public static var accessToken: String = ""
-    public static var language: String = NSLocale.preferredLanguages.first ?? "en-US"
+// MARK: - Movies Target
+public enum TrendingType: String {
+    case today
+    case week
 }
 
-public protocol TmdbApiTarget: ApiTarget {
-    var baseURL: URL { get }
-
-    func buildURLRequest() throws -> URLRequest
+public enum MovieListType {
+    case nowPlaying
+    case upcoming
+    case topRated
+    case recommendations
+    case popular
 }
 
-extension TmdbApiTarget {
-    var headers: [String: String]? {
-        [
-            "Content-type": "application/json",
-            "Authorization": "Bearer \(NetworkWrapConfigurationTmdb.accessToken)"
-        ]
-    }
+public struct MoviesTarget: TmdbApiTarget {
+    public var path: String?
+    public var queryParams: [String: String]?
 
-    func body() throws -> Data? {
-        return nil
-    }
-
-    func buildURLRequest() throws -> URLRequest {
-        guard var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
-            throw ApiError.invalidUrl
-        }
-        urlComponents.path = path
-        if let queryItems = queryParameters() {
-            urlComponents.queryItems = queryItems.map { URLQueryItem(name: $0.key, value: "\($0.value)")}
-        }
-        guard let url = urlComponents.url else {
-            throw ApiError.invalidUrl
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.allHTTPHeaderFields = headers
-        request.httpBody = try body()
-        return request
-    }
-}
-
-struct MoviesTarget: TmdbApiTarget {
-    func queryParameters() -> [String: Any]? {
-        let queryDefault: [String: Any] = [
-            "api_key": NetworkWrapConfigurationTmdb.apiKey,
-            "language": NetworkWrapConfigurationTmdb.language
-        ]
-        return _queryParameters?.merging(queryDefault, uniquingKeysWith: { _,new in new })
-    }
-
-    var baseURL: URL {
-        URL(string: "https://api.themoviedb.org/3")!
-    }
-    var path: String
-    var method: String = "GET"
-    var _queryParameters: [String: Any]?
-
-    init(path: String,
-         queryParameters: [String: Any]? = nil) {
+    private init(path: String? = nil,
+                  queryParams: [String: String]?) {
         self.path = path
-        self._queryParameters = queryParameters
+        self.queryParams = queryParams?.merging(queryDefaultParams, uniquingKeysWith: { _, new in new })
     }
 
-    static func todayTrending(request: MoviesRequestable) -> Self {
-        MoviesTarget(path: "/trending/movie/day",
-                     queryParameters: request.toUrlQueryParameters())
+    public static func trending(type: TrendingType, request: MoviesRequestable) -> Self {
+        MoviesTarget(path: "/trending/movie/\(type.rawValue)",
+                     queryParams: request.toQueryParams())
     }
 
-    static func weekTrending(request: MoviesRequestable) -> Self {
-        MoviesTarget(path: "/trending/movie/week",
-                     queryParameters: request.toUrlQueryParameters())
+    public static func getMovieList(ofType type: MovieListType, request: MoviesRequestable) -> MoviesTarget {
+        switch type {
+        case .nowPlaying:
+            return MoviesTarget.nowPlaying(request: request)
+        case .upcoming:
+            return MoviesTarget.upComing(request: request)
+        case .topRated:
+            return MoviesTarget.topRated(request: request)
+        case .popular:
+            return MoviesTarget.popular(request: request)
+        case .recommendations:
+            // Assuming MoviesRequestable can handle recommendations, otherwise adapt this as needed
+            // Here we should handle it differently since it requires a movieId
+            // I'm assuming you have a different way to get the request for recommendations
+            if let recommendationRequest = request as? MoviesRecommendationRequest {
+                return MoviesTarget.recommendations(request: recommendationRequest)
+            } else {
+                fatalError("Invalid request type for recommendations")
+            }
+        }
     }
 
     static func nowPlaying(request: MoviesRequestable) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/now_playing",
-                            queryParameters: request.toUrlQueryParameters())
+        MoviesTarget(path: "/movie/now_playing",
+                     queryParams: request.toQueryParams())
     }
 
     static func upComing(request: MoviesRequestable) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/upcoming",
-                            queryParameters: request.toUrlQueryParameters())
+        MoviesTarget(path: "/movie/upcoming",
+                     queryParams: request.toQueryParams())
     }
 
     static func topRated(request: MoviesRequestable) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/top_rated",
-                            queryParameters: request.toUrlQueryParameters())
+        MoviesTarget(path: "/movie/top_rated",
+                     queryParams: request.toQueryParams())
     }
 
     static func popular(request: MoviesRequestable) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/popular",
-                            queryParameters: request.toUrlQueryParameters())
+        MoviesTarget(path: "/movie/popular",
+                     queryParams: request.toQueryParams())
     }
 
-    static func recommendations(request: MoviesRecommendationRequest) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/\(request.movieId)/recommendations",
-                            queryParameters: request.toUrlQueryParameters())
+    public static func recommendations(request: MoviesRecommendationRequest) -> MoviesTarget {
+        MoviesTarget(path: "/movie/\(request.movieId)/recommendations",
+                     queryParams: request.toQueryParams())
     }
 
-    static func detail(request: MovieDetailRequest) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/\(request.movieId)",
-                            queryParameters: request.toUrlQueryParameters())
+    public static func detail(request: MovieDetailRequest) -> MoviesTarget {
+        MoviesTarget(path: "/movie/\(request.movieId)",
+                     queryParams: request.toQueryParams())
     }
 
-    static func reviews(request: MovieReviewsRequest) -> MoviesTarget {
-        return MoviesTarget(path: "/movie/\(request.movieId)/reviews",
-                            queryParameters: request.toUrlQueryParameters())
+    public static func reviews(request: MovieReviewsRequest) -> MoviesTarget {
+        MoviesTarget(path: "/movie/\(request.movieId)/reviews",
+                     queryParams: request.toQueryParams())
     }
-}
-
-enum TmdbApiError: Error {
-    case invalidCredentials
 }
