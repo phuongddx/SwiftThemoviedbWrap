@@ -5,33 +5,52 @@
 //  Created by PhuongDoan on 21/6/24.
 //
 
-import Foundation
 import SwiftNetworkWrap
 import XCTest
 import Combine
 @testable import SwiftThemoviedbWrap
 
-final class MoviesDataProviderTests: XCTestCase {
+final class MockNetworkClient: TmdbNetworkClientManager {
+    override init(clientURLSession: any NetworkClient = DefaultNetworkClient(session: .mock)) {
+        super.init(clientURLSession: clientURLSession)
+    }
+}
 
+struct MockRequestable {
+    private init() {}
+
+    static var pageQuery: MoviesRequestable {
+        DefaultMoviesRequest()
+    }
+
+    static var movieReviewQuery: MovieReviewsRequest {
+        MovieReviewsRequest(movieId: 1234, page: 1)
+    }
+
+    static var movieRecommendations: MoviesRecommendationRequest {
+        MoviesRecommendationRequest(page: 2, movieId: 1234)
+    }
+}
+
+final class MoviesDataProviderTests: XCTestCase {
     private var subscriptions: Set<AnyCancellable> = Set<AnyCancellable>()
     var sut: MoviesDataProvider!
 
     override func setUp() {
         createMockConfig()
-        sut = DefaultMoviesDataProvider(urlSession: .mock)
+        sut = DefaultMoviesDataProvider(clientManager: MockNetworkClient())
     }
 
     override func tearDown() {
-        //        Mocker.removeAll()
-        super.tearDown()
+        sut = nil
     }
 
     func test_getTodayTrendingList_shouldReturnAnList() throws {
         MockingURLSession.resgister(MockedData.moviesListJSON.data)
         let expectation = expectation(description: "an movies list should come")
 
-        sut.getTrendingList(type: .today,
-                            request: DefaultMoviesRequest(page: 2))
+        sut.getTrendingList(of: .today,
+                            query: MockRequestable.pageQuery)
             .sinkToResult { result in
                 switch result {
                 case .success(let moviesDTO):
@@ -51,8 +70,8 @@ final class MoviesDataProviderTests: XCTestCase {
         MockingURLSession.resgister400ErrorCode()
         let expectation = expectation(description: "an failure error come")
 
-        sut.getTrendingList(type: .today,
-                            request: DefaultMoviesRequest(page: 2))
+        sut.getTrendingList(of: .today,
+                            query: MockRequestable.pageQuery)
             .sinkToResult { result in
                 switch result {
                 case .failure:
@@ -70,7 +89,7 @@ final class MoviesDataProviderTests: XCTestCase {
         MockingURLSession.resgister(MockedData.reviewListJSON.data)
         let expectation = expectation(description: "should return an review list")
 
-        sut.getMovieReviewList(request: MovieReviewsRequest(movieId: 123, page: 2))
+        sut.getMovieReviewList(query: MockRequestable.movieReviewQuery)
             .sinkToResult {
                 switch $0 {
                 case .success(let reviewPaged):
@@ -85,55 +104,27 @@ final class MoviesDataProviderTests: XCTestCase {
 
         wait(for: [expectation], timeout: 5)
     }
-}
 
-extension MoviesResponse {
-    static var mocked: MoviesResponse {
-        MoviesResponse(page: 1,
-                       totalPages: 10,
-                       results: [Movie.mockMovie1, Movie.mockMovie2])
+    func test_GetMovieListRecommendations_ShouldReturnAnList() {
+        MockingURLSession.resgister(MockedData.moviesListJSON.data)
+        let expectation = expectation(description: "an movies list should come")
+
+        sut.getMovieList(of: .recommendations,
+                         query: MockRequestable.movieRecommendations)
+        .sinkToResult {
+            switch $0 {
+            case .success(let data):
+                XCTAssertTrue(!data.results.isEmpty)
+                XCTAssertEqual(data.results.first!.title, "Scream VI")
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("should not reach here, Error: \(error.localizedDescription)")            }
+        }
+        .store(in: &subscriptions)
+
+        wait(for: [expectation], timeout: 2)
     }
 }
-
-extension Movie {
-    static var mockMovie1 = Movie(
-        id: 1,
-        title: "Mock Movie 1",
-        originalTitle: "Mock Original Title 1",
-        overview: "This is a brief overview of Mock Movie 1.",
-        posterPath: "/mockPoster1.jpg",
-        backdropPath: "/mockBackdrop1.jpg",
-        mediaType: "movie",
-        adult: false,
-        originalLanguage: "en",
-        genreIds: [28, 12],
-        popularity: 10.5,
-        releaseDate: "2022-01-01",
-        video: false,
-        voteAverage: 7.8,
-        voteCount: 1234
-    )
-
-    static var mockMovie2 = Movie(
-        id: 2,
-        title: "Mock Movie 2",
-        originalTitle: "Mock Original Title 2",
-        overview: "This is a brief overview of Mock Movie 2.",
-        posterPath: "/mockPoster2.jpg",
-        backdropPath: "/mockBackdrop2.jpg",
-        mediaType: "movie",
-        adult: false,
-        originalLanguage: "fr",
-        genreIds: [35, 18],
-        popularity: 20.3,
-        releaseDate: "2023-02-02",
-        video: false,
-        voteAverage: 8.2,
-        voteCount: 5678
-    )
-
-}
-
 
 extension URL {
     var data: Data {
